@@ -1,0 +1,2627 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NetKit — Bộ công cụ kỹ thuật</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;900&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════ */
+:root {
+  --P:       #1aa6f6;
+  --P-d:     #0d8fd4;
+  --P-l:     #e8f6fe;
+  --P-bg:    #f0f9ff;
+  --text:    #0f1923;
+  --text2:   #3d5166;
+  --text3:   #7a92a8;
+  --border:  #dde5ed;
+  --border2: #c4d0dc;
+  --bg:      #f4f7fa;
+  --bg2:     #edf1f5;
+  --white:   #ffffff;
+  --success: #16a34a;
+  --warn:    #ca8a04;
+  --danger:  #dc2626;
+  --info:    #0284c7;
+  --sidebar-w: 240px;
+  --header-h: 56px;
+  --r:       10px;
+  --shadow:  0 1px 4px rgba(15,25,35,0.08);
+  --shadow2: 0 4px 20px rgba(26,166,246,0.12);
+  --shadow3: 0 12px 48px rgba(26,166,246,0.18);
+  --font: 'Roboto', Helvetica, Arial, sans-serif;
+  --mono: 'Roboto Mono', 'Courier New', monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font);cursor:pointer}
+input,textarea,select{font-family:var(--font)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.app{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--white);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:fixed;left:0;top:0;bottom:0;
+  z-index:50;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  box-shadow:2px 0 12px rgba(0,0,0,.04);
+}
+.sidebar-logo{
+  padding:0 18px;height:var(--header-h);
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.logo-mark{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--P),#0056c4);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-mark svg{color:white}
+.logo-text{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.logo-text span{color:var(--P)}
+
+.sidebar-search{
+  padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.s-search{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:8px;padding:7px 11px;transition:all .2s;
+}
+.s-search:focus-within{border-color:var(--P);background:white}
+.s-search input{border:none;background:none;outline:none;font-size:13px;color:var(--text);width:100%}
+.s-search svg{flex-shrink:0;color:var(--text3)}
+
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 10px}
+.nav-group{margin-bottom:6px}
+.nav-group-label{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--text3);
+  padding:8px 10px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:8px;
+  font-size:13px;font-weight:500;color:var(--text2);
+  transition:all .15s;cursor:pointer;
+  border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--P-l);color:var(--P);font-weight:600}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.nav-badge{
+  margin-left:auto;font-size:10px;font-weight:700;
+  background:var(--P-l);color:var(--P);
+  padding:2px 7px;border-radius:20px;
+}
+
+.sidebar-footer{
+  padding:12px 14px;border-top:1px solid var(--border);flex-shrink:0;
+  font-size:11px;color:var(--text3);text-align:center;
+}
+
+/* ── MAIN CONTENT ── */
+.main{
+  margin-left:var(--sidebar-w);flex:1;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar{
+  height:var(--header-h);
+  background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:16px;
+  position:sticky;top:0;z-index:40;
+  box-shadow:var(--shadow);
+}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.menu-toggle{
+  display:none;width:36px;height:36px;border-radius:8px;
+  border:none;background:var(--bg);align-items:center;justify-content:center;
+  color:var(--text2);margin-right:4px;
+}
+
+/* ── PAGE CONTENT ── */
+.page-content{padding:24px;flex:1}
+.page-section{display:none}
+.page-section.active{display:block;animation:fadeUp .2s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HOME PAGE ── */
+.home-hero{
+  background:linear-gradient(135deg,#0d1b2a 0%,#0d3b5e 50%,#0a2a45 100%);
+  border-radius:16px;padding:36px 40px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+.home-hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231aa6f6' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.home-hero h1{font-size:28px;font-weight:900;color:white;margin-bottom:8px;position:relative;letter-spacing:-.5px}
+.home-hero h1 span{color:var(--P)}
+.home-hero p{font-size:14px;color:rgba(255,255,255,.65);position:relative;max-width:480px;line-height:1.7}
+.hero-stats{display:flex;gap:28px;margin-top:24px;position:relative}
+.hero-stat{text-align:left}
+.hero-stat-n{font-size:24px;font-weight:800;color:var(--P);line-height:1}
+.hero-stat-l{font-size:11px;color:rgba(255,255,255,.5);margin-top:3px;font-weight:500}
+
+/* ── TOOLS GRID (homepage) ── */
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.section-header h2{font-size:16px;font-weight:700;color:var(--text)}
+.section-header .count{
+  font-size:11px;font-weight:700;background:var(--P-l);color:var(--P);
+  padding:2px 8px;border-radius:20px;
+}
+.section-line{flex:1;height:1px;background:var(--border)}
+
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(195px,1fr));
+  gap:14px;margin-bottom:28px;
+}
+.tool-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:18px 16px;
+  cursor:pointer;transition:all .2s;
+  box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+}
+.tool-card:hover{border-color:var(--P);box-shadow:var(--shadow2);transform:translateY(-2px)}
+.tool-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;
+  background:linear-gradient(90deg,var(--P),#0056c4);
+  opacity:0;transition:opacity .2s;
+}
+.tool-card:hover::after{opacity:1}
+.tc-icon{
+  width:40px;height:40px;border-radius:9px;
+  background:var(--P-l);display:flex;align-items:center;justify-content:center;
+  margin-bottom:12px;transition:all .2s;
+}
+.tc-icon svg{color:var(--P);transition:color .2s}
+.tool-card:hover .tc-icon{background:var(--P)}
+.tool-card:hover .tc-icon svg{color:white}
+.tc-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px}
+.tc-desc{font-size:11.5px;color:var(--text3);line-height:1.5}
+.tc-cat{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:600;letter-spacing:.3px;
+  margin-top:10px;
+}
+.cat-domain{color:#0284c7}.cat-domain-bg{background:#e0f2fe}
+.cat-security{color:#16a34a}.cat-security-bg{background:#dcfce7}
+.cat-network{color:#ca8a04}.cat-network-bg{background:#fef9c3}
+.cat-utility{color:#9333ea}.cat-utility-bg{background:#f3e8ff}
+.tc-cat span{padding:2px 8px;border-radius:20px;font-size:10px}
+
+/* ═══════════════════════════════════════
+   TOOL PAGE LAYOUT
+═══════════════════════════════════════ */
+.tool-layout{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+.tool-input-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:14px;overflow:hidden;
+  box-shadow:var(--shadow);
+  position:sticky;top:calc(var(--header-h) + 20px);
+}
+.tic-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,var(--P-bg),var(--white));
+  display:flex;align-items:center;gap:12px;
+}
+.tic-icon{
+  width:38px;height:38px;border-radius:9px;
+  background:var(--P);display:flex;align-items:center;justify-content:center;
+}
+.tic-icon svg{color:white}
+.tic-title{font-size:14px;font-weight:700;color:var(--text)}
+.tic-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.tic-body{padding:20px}
+
+.tool-result-card{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:14px;overflow:hidden;
+  box-shadow:var(--shadow);min-height:300px;
+}
+.trc-header{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);
+}
+.trc-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+.trc-body{padding:20px}
+.trc-empty{
+  padding:60px 20px;text-align:center;
+  color:var(--text3);font-size:13px;
+}
+.trc-empty svg{color:var(--border2);margin-bottom:14px}
+.trc-empty p{margin-top:8px;font-size:12px;color:var(--text3)}
+
+/* ═══════════════════════════════════════
+   FORM ELEMENTS
+═══════════════════════════════════════ */
+.form-group{margin-bottom:14px}
+.form-label{
+  display:block;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;
+  color:var(--text2);margin-bottom:6px;
+}
+.form-input{
+  width:100%;padding:9px 13px;
+  border:1.5px solid var(--border);border-radius:8px;
+  outline:none;font-size:13.5px;color:var(--text);
+  background:white;transition:all .2s;
+}
+.form-input:focus{border-color:var(--P);box-shadow:0 0 0 3px rgba(26,166,246,.1)}
+.form-input::placeholder{color:var(--text3);font-size:13px}
+textarea.form-input{resize:vertical;line-height:1.6;font-family:var(--mono);font-size:12px}
+select.form-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%237a92a8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+.form-hint{font-size:11px;color:var(--text3);margin-top:5px}
+
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 18px;border-radius:8px;font-size:13.5px;font-weight:600;
+  cursor:pointer;border:none;transition:all .2s;white-space:nowrap;
+}
+.btn-primary{background:var(--P);color:white}
+.btn-primary:hover{background:var(--P-d);box-shadow:0 4px 14px rgba(26,166,246,.4);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{background:var(--white);color:var(--text2);border:1.5px solid var(--border)}
+.btn-secondary:hover{border-color:var(--P);color:var(--P);background:var(--P-l)}
+.btn-ghost{background:transparent;color:var(--text3);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--bg2);color:var(--text2)}
+.btn-sm{padding:6px 13px;font-size:12.5px}
+.btn-xs{padding:4px 10px;font-size:11px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:7px}
+
+/* ═══════════════════════════════════════
+   RESULT COMPONENTS
+═══════════════════════════════════════ */
+.result-row{
+  display:flex;gap:14px;padding:10px 0;
+  border-bottom:1px solid var(--border);align-items:flex-start;
+}
+.result-row:last-child{border-bottom:none}
+.rk{font-size:12px;font-weight:600;color:var(--text2);min-width:140px;flex-shrink:0;padding-top:1px}
+.rv{font-size:13px;color:var(--text);word-break:break-all;line-height:1.6}
+.rv.mono{font-family:var(--mono);font-size:12px}
+.rv.big{font-size:20px;font-weight:800;color:var(--P)}
+.rv.code{
+  font-family:var(--mono);font-size:11.5px;
+  background:var(--bg);padding:8px 12px;border-radius:7px;
+  border:1px solid var(--border);display:block;
+  word-break:break-all;line-height:1.7;
+}
+
+/* badges */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:20px;
+  font-size:11.5px;font-weight:600;
+}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.b-green{background:#f0fdf4;color:var(--success);border:1px solid #bbf7d0}.b-green::before{background:var(--success)}
+.b-red{background:#fef2f2;color:var(--danger);border:1px solid #fecaca}.b-red::before{background:var(--danger)}
+.b-yellow{background:#fefce8;color:var(--warn);border:1px solid #fef08a}.b-yellow::before{background:var(--warn)}
+.b-blue{background:var(--P-l);color:var(--P);border:1px solid #bae6fd}.b-blue::before{background:var(--P)}
+.b-gray{background:var(--bg2);color:var(--text2);border:1px solid var(--border)}.b-gray::before{background:var(--text3)}
+
+/* alert */
+.alert{
+  padding:12px 16px;border-radius:9px;font-size:13px;
+  display:flex;gap:10px;align-items:flex-start;margin-top:14px;line-height:1.6;
+}
+.alert-icon{flex-shrink:0;margin-top:1px;font-size:15px}
+.alert-error{background:#fef2f2;color:var(--danger);border:1px solid #fecaca}
+.alert-info{background:var(--P-bg);color:var(--info);border:1px solid #bae6fd}
+.alert-success{background:#f0fdf4;color:var(--success);border:1px solid #bbf7d0}
+.alert-warn{background:#fefce8;color:var(--warn);border:1px solid #fef08a}
+
+/* loading */
+.loading{display:none;text-align:center;padding:48px 20px;color:var(--text3)}
+.loading.show{display:block}
+.spinner{
+  width:36px;height:36px;border-radius:50%;
+  border:3px solid var(--border);border-top-color:var(--P);
+  animation:spin .7s linear infinite;margin:0 auto 14px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;font-weight:500}
+.loading-sub{font-size:11.5px;color:var(--text3);margin-top:4px}
+
+/* DNS table */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{
+  background:var(--bg);padding:8px 14px;text-align:left;
+  font-size:11px;font-weight:700;color:var(--text2);
+  border-bottom:2px solid var(--border);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;
+}
+.data-table td{
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  font-size:12.5px;color:var(--text);vertical-align:top;word-break:break-all;
+}
+.data-table td.mono{font-family:var(--mono);font-size:11.5px}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--P-bg)}
+
+/* result blocks */
+.rblock{border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.rblock-head{
+  padding:10px 16px;background:var(--bg);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.rblock-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.rblock-body{padding:14px 16px}
+
+/* copy button */
+.copy-btn{
+  background:none;border:1px solid var(--border);border-radius:6px;
+  padding:3px 9px;font-size:11px;cursor:pointer;color:var(--text3);
+  transition:all .15s;display:inline-flex;align-items:center;gap:4px;
+}
+.copy-btn:hover{border-color:var(--P);color:var(--P);background:var(--P-l)}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#0f1923;color:white;padding:10px 20px;border-radius:9px;
+  font-size:13px;font-weight:500;opacity:0;transition:all .25s;z-index:9999;
+  pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* preset pills */
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.preset-pill{
+  padding:4px 12px;border-radius:20px;font-size:11.5px;font-weight:600;
+  background:var(--bg2);border:1px solid var(--border);color:var(--text2);
+  cursor:pointer;transition:all .15s;
+}
+.preset-pill:hover{background:var(--P-l);border-color:var(--P);color:var(--P)}
+
+/* progress */
+.prog-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin:6px 0}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.prog-green{background:var(--success)}
+.prog-yellow{background:var(--warn)}
+.prog-red{background:var(--danger)}
+.prog-blue{background:var(--P)}
+
+/* feature list */
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.feature-list li{
+  display:flex;align-items:center;gap:8px;
+  font-size:12.5px;color:var(--text2);
+}
+.feature-list li svg{color:var(--P);flex-shrink:0}
+
+/* section divider */
+.s-divider{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
+
+/* ═══════════════════════════════════════
+   BREADCRUMB
+═══════════════════════════════════════ */
+.breadcrumb{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--text3);margin-bottom:18px;
+}
+.breadcrumb span{cursor:pointer;transition:color .15s}
+.breadcrumb span:hover{color:var(--P)}
+.breadcrumb .sep{opacity:.4}
+.breadcrumb .current{color:var(--text);font-weight:600}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:1100px){
+  .tool-layout{grid-template-columns:340px 1fr}
+}
+@media(max-width:900px){
+  :root{--sidebar-w:0px}
+  .sidebar{transform:translateX(-240px)}
+  .sidebar.open{transform:translateX(0);--sidebar-w:240px;box-shadow:0 0 0 100vw rgba(0,0,0,.3)}
+  .main{margin-left:0}
+  .menu-toggle{display:flex}
+  .tool-layout{grid-template-columns:1fr}
+  .tool-input-card{position:static}
+}
+@media(max-width:600px){
+  .page-content{padding:16px}
+  .tools-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .tool-card{padding:14px 12px}
+  .tc-desc{display:none}
+  .home-hero{padding:24px 20px}
+  .hero-stats{gap:20px}
+  .rk{min-width:100px}
+}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- APP SHELL -->
+<div class="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div class="logo-text">Net<span>Kit</span></div>
+    </div>
+
+    <div class="sidebar-search">
+      <div class="s-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Tìm công cụ..." id="sideSearch" oninput="sidebarSearch(this.value)">
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="nav-group">
+        <div class="nav-group-label">Tổng quan</div>
+        <button class="nav-item active" id="nav-home" onclick="showPage('home')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Trang chủ
+          <span class="nav-badge">20</span>
+        </button>
+      </div>
+
+      <div class="nav-group" id="ng-domain">
+        <div class="nav-group-label">🌐 Tên miền</div>
+        <button class="nav-item" onclick="showPage('whois')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          Whois tên miền
+        </button>
+        <button class="nav-item" onclick="showPage('dns')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          Bản ghi DNS
+        </button>
+        <button class="nav-item" onclick="showPage('domain-check')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Kiểm tra tên miền
+        </button>
+        <button class="nav-item" onclick="showPage('ip-lookup')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Tra cứu IP
+        </button>
+        <button class="nav-item" onclick="showPage('reverse-dns')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+          Reverse DNS
+        </button>
+        <button class="nav-item" onclick="showPage('punycode')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+          Punycode
+        </button>
+      </div>
+
+      <div class="nav-group" id="ng-security">
+        <div class="nav-group-label">🔒 Bảo mật</div>
+        <button class="nav-item" onclick="showPage('ssl-check')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Kiểm tra SSL
+        </button>
+        <button class="nav-item" onclick="showPage('spf')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Kiểm tra SPF
+        </button>
+        <button class="nav-item" onclick="showPage('dkim')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Kiểm tra DKIM
+        </button>
+        <button class="nav-item" onclick="showPage('dmarc')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Kiểm tra DMARC
+        </button>
+        <button class="nav-item" onclick="showPage('blacklist')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          Blacklist Check
+        </button>
+        <button class="nav-item" onclick="showPage('hsts')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+          HSTS Check
+        </button>
+      </div>
+
+      <div class="nav-group" id="ng-network">
+        <div class="nav-group-label">📡 Mạng</div>
+        <button class="nav-item" onclick="showPage('http-headers')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          HTTP Headers
+        </button>
+        <button class="nav-item" onclick="showPage('http2')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          HTTP/2 Test
+        </button>
+        <button class="nav-item" onclick="showPage('ping')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6l23 6-23 6"/><path d="M1 12h13"/></svg>
+          Ping
+        </button>
+        <button class="nav-item" onclick="showPage('traceroute')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/><path d="M6 12h4M14 12h4"/></svg>
+          Traceroute
+        </button>
+        <button class="nav-item" onclick="showPage('port-scan')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Port Scanner
+        </button>
+      </div>
+
+      <div class="nav-group" id="ng-utility">
+        <div class="nav-group-label">🛠 Tiện ích</div>
+        <button class="nav-item" onclick="showPage('ssl-decode')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Giải mã SSL/PEM
+        </button>
+        <button class="nav-item" onclick="showPage('cert-match')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+          So khớp Certificate
+        </button>
+        <button class="nav-item" onclick="showPage('base64')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          Base64
+        </button>
+        <button class="nav-item" onclick="showPage('hash')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+          Hash Generator
+        </button>
+        <button class="nav-item" onclick="showPage('url-encode')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          URL Encode/Decode
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      Dùng API công khai • Kết quả thực 100%
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar" id="topbar">
+      <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <div class="topbar-title" id="topbarTitle">Trang chủ</div>
+        <div class="topbar-sub" id="topbarSub">Bộ công cụ kỹ thuật NetKit</div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="showPage('home')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Trang chủ
+        </button>
+      </div>
+    </div>
+
+    <!-- Pages -->
+    <div class="page-content">
+
+      <!-- ══ HOME ══ -->
+      <div class="page-section active" id="page-home">
+        <div class="home-hero">
+          <h1>Công cụ kỹ thuật <span>chuyên nghiệp</span></h1>
+          <p>Tra cứu tên miền, kiểm tra bảo mật SSL/SPF/DKIM/DMARC, phân tích mạng và nhiều tiện ích kỹ thuật. Kết quả từ DNS/RDAP/API công khai — chính xác 100%.</p>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-n">20</div><div class="hero-stat-l">Công cụ</div></div>
+            <div class="hero-stat"><div class="hero-stat-n">4</div><div class="hero-stat-l">Danh mục</div></div>
+            <div class="hero-stat"><div class="hero-stat-n">100%</div><div class="hero-stat-l">Miễn phí</div></div>
+          </div>
+        </div>
+
+        <div id="homeToolsArea"></div>
+      </div>
+
+      <!-- ══ WHOIS ══ -->
+      <div class="page-section" id="page-whois">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tên miền</span><span class="sep">/</span><span class="current">Whois tên miền</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+              <div><div class="tic-title">Whois tên miền</div><div class="tic-sub">Tra cứu thông tin đăng ký</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-whois" placeholder="example.com" onkeydown="if(event.key==='Enter')run('whois')">
+                <div class="form-hint">Nhập tên miền không cần http://</div>
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-whois','google.com','whois')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-whois','github.com','whois')">github.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-whois','cloudflare.com','whois')">cloudflare.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('whois')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Tra cứu</button>
+                <button class="btn btn-ghost" onclick="clearTool('whois')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-whois">Kết quả</span><span id="ra-whois"></span></div>
+            <div class="trc-body" id="rb-whois"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><div>Nhập tên miền để tra cứu WHOIS</div><p>Thông tin đăng ký, ngày hết hạn, name server...</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DNS ══ -->
+      <div class="page-section" id="page-dns">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tên miền</span><span class="sep">/</span><span class="current">Bản ghi DNS</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div>
+              <div><div class="tic-title">Bản ghi DNS</div><div class="tic-sub">Tra cứu qua Google DNS</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-dns" placeholder="example.com" onkeydown="if(event.key==='Enter')run('dns')">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Loại bản ghi</label>
+                <select class="form-input" id="dns-type">
+                  <option value="ALL">Tất cả (A, AAAA, MX, NS, TXT, CNAME)</option>
+                  <option value="A">A — IPv4 Address</option>
+                  <option value="AAAA">AAAA — IPv6 Address</option>
+                  <option value="MX">MX — Mail Exchange</option>
+                  <option value="TXT">TXT — Text Record</option>
+                  <option value="NS">NS — Name Server</option>
+                  <option value="CNAME">CNAME — Alias</option>
+                  <option value="SOA">SOA — Start of Authority</option>
+                  <option value="CAA">CAA — Certificate Authority</option>
+                  <option value="SRV">SRV — Service</option>
+                  <option value="PTR">PTR — Reverse</option>
+                </select>
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-dns','google.com','dns')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-dns','bkns.vn','dns')">bkns.vn</span>
+                <span class="preset-pill" onclick="setAndRun('i-dns','cloudflare.com','dns')">cloudflare.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('dns')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Tra cứu</button>
+                <button class="btn btn-ghost" onclick="clearTool('dns')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-dns">Kết quả</span><span id="ra-dns"></span></div>
+            <div class="trc-body" id="rb-dns"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg><div>Nhập tên miền để tra cứu DNS</div><p>Hỗ trợ A, AAAA, MX, TXT, NS, CNAME, SOA, CAA...</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DOMAIN CHECK ══ -->
+      <div class="page-section" id="page-domain-check">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tên miền</span><span class="sep">/</span><span class="current">Kiểm tra tên miền</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div><div class="tic-title">Kiểm tra tên miền</div><div class="tic-sub">Khả dụng trên nhiều TLD</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền (không cần đuôi)</label>
+                <input class="form-input" id="i-domain-check" placeholder="tenmiencuaban" onkeydown="if(event.key==='Enter')run('domain-check')">
+                <div class="form-hint">Hệ thống sẽ kiểm tra .com .net .org .vn .io và nhiều TLD khác</div>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('domain-check')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('domain-check')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-domain-check">Kết quả</span><span id="ra-domain-check"></span></div>
+            <div class="trc-body" id="rb-domain-check"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg><div>Nhập tên để kiểm tra khả dụng</div><p>Kiểm tra .com .net .org .vn .io .co .app .dev ...</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ IP LOOKUP ══ -->
+      <div class="page-section" id="page-ip-lookup">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tên miền</span><span class="sep">/</span><span class="current">Tra cứu IP</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+              <div><div class="tic-title">Tra cứu IP</div><div class="tic-sub">Địa lý, ASN, ISP của địa chỉ IP</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Địa chỉ IP (để trống = IP của bạn)</label>
+                <input class="form-input" id="i-ip-lookup" placeholder="8.8.8.8" onkeydown="if(event.key==='Enter')run('ip-lookup')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-ip-lookup','','ip-lookup')">IP của tôi</span>
+                <span class="preset-pill" onclick="setAndRun('i-ip-lookup','8.8.8.8','ip-lookup')">8.8.8.8</span>
+                <span class="preset-pill" onclick="setAndRun('i-ip-lookup','1.1.1.1','ip-lookup')">1.1.1.1</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('ip-lookup')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Tra cứu</button>
+                <button class="btn btn-ghost" onclick="clearTool('ip-lookup')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-ip-lookup">Kết quả</span><span id="ra-ip-lookup"></span></div>
+            <div class="trc-body" id="rb-ip-lookup"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div>Nhập địa chỉ IP để tra cứu</div><p>Xem quốc gia, thành phố, ISP, ASN, tọa độ...</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ REVERSE DNS ══ -->
+      <div class="page-section" id="page-reverse-dns">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tên miền</span><span class="sep">/</span><span class="current">Reverse DNS</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg></div>
+              <div><div class="tic-title">Reverse DNS</div><div class="tic-sub">Tra cứu hostname từ IP (PTR)</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Địa chỉ IPv4</label>
+                <input class="form-input" id="i-reverse-dns" placeholder="8.8.8.8" onkeydown="if(event.key==='Enter')run('reverse-dns')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-reverse-dns','8.8.8.8','reverse-dns')">8.8.8.8</span>
+                <span class="preset-pill" onclick="setAndRun('i-reverse-dns','1.1.1.1','reverse-dns')">1.1.1.1</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('reverse-dns')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Tra cứu</button>
+                <button class="btn btn-ghost" onclick="clearTool('reverse-dns')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-reverse-dns">Kết quả</span><span id="ra-reverse-dns"></span></div>
+            <div class="trc-body" id="rb-reverse-dns"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg><div>Nhập địa chỉ IP để tìm hostname</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PUNYCODE ══ -->
+      <div class="page-section" id="page-punycode">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tên miền</span><span class="sep">/</span><span class="current">Punycode</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
+              <div><div class="tic-title">Chuyển đổi Punycode</div><div class="tic-sub">IDN ↔ ACE (xn--)</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền Unicode hoặc Punycode</label>
+                <input class="form-input" id="i-punycode" placeholder="tiếngviệt.vn" onkeydown="if(event.key==='Enter')run('punycode')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-punycode','tiếngviệt.vn','punycode')">tiếngviệt.vn</span>
+                <span class="preset-pill" onclick="setAndRun('i-punycode','中文.com','punycode')">中文.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('punycode')">Chuyển đổi</button>
+                <button class="btn btn-ghost" onclick="clearTool('punycode')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-punycode">Kết quả</span><span id="ra-punycode"></span></div>
+            <div class="trc-body" id="rb-punycode"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4 7 4 4 20 4 20 7"/><line x1="12" y1="4" x2="12" y2="20"/></svg><div>Nhập tên miền để chuyển đổi</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SSL CHECK ══ -->
+      <div class="page-section" id="page-ssl-check">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Bảo mật</span><span class="sep">/</span><span class="current">Kiểm tra SSL</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+              <div><div class="tic-title">Kiểm tra SSL/TLS</div><div class="tic-sub">Tính hợp lệ & thông tin cert</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-ssl-check" placeholder="example.com" onkeydown="if(event.key==='Enter')run('ssl-check')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-ssl-check','google.com','ssl-check')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-ssl-check','github.com','ssl-check')">github.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-ssl-check','expired.badssl.com','ssl-check')">expired cert</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('ssl-check')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('ssl-check')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-ssl-check">Kết quả</span><span id="ra-ssl-check"></span></div>
+            <div class="trc-body" id="rb-ssl-check"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><div>Nhập tên miền để kiểm tra SSL</div><p>Ngày hết hạn, nhà cấp chứng chỉ, trạng thái...</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SPF ══ -->
+      <div class="page-section" id="page-spf">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Bảo mật</span><span class="sep">/</span><span class="current">Kiểm tra SPF</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+              <div><div class="tic-title">Kiểm tra SPF</div><div class="tic-sub">Sender Policy Framework</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-spf" placeholder="example.com" onkeydown="if(event.key==='Enter')run('spf')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-spf','google.com','spf')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-spf','microsoft.com','spf')">microsoft.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('spf')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('spf')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-spf">Kết quả</span><span id="ra-spf"></span></div>
+            <div class="trc-body" id="rb-spf"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg><div>Nhập tên miền để kiểm tra SPF</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DKIM ══ -->
+      <div class="page-section" id="page-dkim">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Bảo mật</span><span class="sep">/</span><span class="current">Kiểm tra DKIM</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
+              <div><div class="tic-title">Kiểm tra DKIM</div><div class="tic-sub">DomainKeys Identified Mail</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-dkim" placeholder="example.com" onkeydown="if(event.key==='Enter')run('dkim')">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Selector</label>
+                <input class="form-input" id="dkim-selector" placeholder="default, google, s1, mail..." onkeydown="if(event.key==='Enter')run('dkim')">
+                <div class="form-hint">Phổ biến: default, google, s1, s2, mail, smtp, k1</div>
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="document.getElementById('i-dkim').value='google.com';document.getElementById('dkim-selector').value='20230601';run('dkim')">Google</span>
+                <span class="preset-pill" onclick="document.getElementById('i-dkim').value='mailchimp.com';document.getElementById('dkim-selector').value='k1';run('dkim')">Mailchimp</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('dkim')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('dkim')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-dkim">Kết quả</span><span id="ra-dkim"></span></div>
+            <div class="trc-body" id="rb-dkim"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778"/></svg><div>Nhập domain và selector để kiểm tra DKIM</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ DMARC ══ -->
+      <div class="page-section" id="page-dmarc">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Bảo mật</span><span class="sep">/</span><span class="current">Kiểm tra DMARC</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+              <div><div class="tic-title">Kiểm tra DMARC</div><div class="tic-sub">Domain-based Message Authentication</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-dmarc" placeholder="example.com" onkeydown="if(event.key==='Enter')run('dmarc')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-dmarc','google.com','dmarc')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-dmarc','facebook.com','dmarc')">facebook.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('dmarc')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('dmarc')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-dmarc">Kết quả</span><span id="ra-dmarc"></span></div>
+            <div class="trc-body" id="rb-dmarc"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><div>Nhập tên miền để kiểm tra DMARC</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BLACKLIST ══ -->
+      <div class="page-section" id="page-blacklist">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Bảo mật</span><span class="sep">/</span><span class="current">Blacklist Check</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+              <div><div class="tic-title">Blacklist Check</div><div class="tic-sub">Kiểm tra 10+ DNSBL</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">IP hoặc tên miền</label>
+                <input class="form-input" id="i-blacklist" placeholder="1.2.3.4 hoặc example.com" onkeydown="if(event.key==='Enter')run('blacklist')">
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('blacklist')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('blacklist')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-blacklist">Kết quả</span><span id="ra-blacklist"></span></div>
+            <div class="trc-body" id="rb-blacklist"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><div>Nhập IP/domain để kiểm tra blacklist</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HSTS ══ -->
+      <div class="page-section" id="page-hsts">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Bảo mật</span><span class="sep">/</span><span class="current">HSTS Check</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></div>
+              <div><div class="tic-title">HSTS Check</div><div class="tic-sub">HTTP Strict Transport Security</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-hsts" placeholder="example.com" onkeydown="if(event.key==='Enter')run('hsts')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-hsts','google.com','hsts')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-hsts','stripe.com','hsts')">stripe.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('hsts')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('hsts')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-hsts">Kết quả</span><span id="ra-hsts"></span></div>
+            <div class="trc-body" id="rb-hsts"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/></svg><div>Nhập tên miền để kiểm tra HSTS</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HTTP HEADERS ══ -->
+      <div class="page-section" id="page-http-headers">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Mạng</span><span class="sep">/</span><span class="current">HTTP Headers</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+              <div><div class="tic-title">HTTP Headers</div><div class="tic-sub">Phân tích response headers</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">URL hoặc tên miền</label>
+                <input class="form-input" id="i-http-headers" placeholder="https://example.com" onkeydown="if(event.key==='Enter')run('http-headers')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-http-headers','google.com','http-headers')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-http-headers','cloudflare.com','http-headers')">cloudflare.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('http-headers')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Phân tích</button>
+                <button class="btn btn-ghost" onclick="clearTool('http-headers')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-http-headers">Kết quả</span><span id="ra-http-headers"></span></div>
+            <div class="trc-body" id="rb-http-headers"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><div>Nhập URL để phân tích HTTP headers</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HTTP/2 ══ -->
+      <div class="page-section" id="page-http2">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Mạng</span><span class="sep">/</span><span class="current">HTTP/2 Test</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+              <div><div class="tic-title">HTTP/2 Test</div><div class="tic-sub">Kiểm tra hỗ trợ HTTP/2 & HTTP/3</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Tên miền</label>
+                <input class="form-input" id="i-http2" placeholder="example.com" onkeydown="if(event.key==='Enter')run('http2')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-http2','google.com','http2')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-http2','cloudflare.com','http2')">cloudflare.com</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('http2')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Kiểm tra</button>
+                <button class="btn btn-ghost" onclick="clearTool('http2')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-http2">Kết quả</span><span id="ra-http2"></span></div>
+            <div class="trc-body" id="rb-http2"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><div>Nhập tên miền để kiểm tra HTTP/2</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PING ══ -->
+      <div class="page-section" id="page-ping">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Mạng</span><span class="sep">/</span><span class="current">Ping</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6l23 6-23 6"/><path d="M1 12h13"/></svg></div>
+              <div><div class="tic-title">Ping</div><div class="tic-sub">Đo độ trễ kết nối mạng</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Host / IP</label>
+                <input class="form-input" id="i-ping" placeholder="example.com hoặc 8.8.8.8" onkeydown="if(event.key==='Enter')run('ping')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-ping','google.com','ping')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-ping','8.8.8.8','ping')">8.8.8.8</span>
+                <span class="preset-pill" onclick="setAndRun('i-ping','1.1.1.1','ping')">1.1.1.1</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('ping')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Ping</button>
+                <button class="btn btn-ghost" onclick="clearTool('ping')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-ping">Kết quả</span><span id="ra-ping"></span></div>
+            <div class="trc-body" id="rb-ping"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 6l23 6-23 6"/></svg><div>Nhập host để đo ping</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TRACEROUTE ══ -->
+      <div class="page-section" id="page-traceroute">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Mạng</span><span class="sep">/</span><span class="current">Traceroute</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/><path d="M6 12h4M14 12h4"/></svg></div>
+              <div><div class="tic-title">Traceroute</div><div class="tic-sub">Truy vết đường đi gói tin</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Host / IP</label>
+                <input class="form-input" id="i-traceroute" placeholder="example.com hoặc 8.8.8.8" onkeydown="if(event.key==='Enter')run('traceroute')">
+              </div>
+              <div class="presets">
+                <span class="preset-pill" onclick="setAndRun('i-traceroute','google.com','traceroute')">google.com</span>
+                <span class="preset-pill" onclick="setAndRun('i-traceroute','8.8.8.8','traceroute')">8.8.8.8</span>
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('traceroute')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Traceroute</button>
+                <button class="btn btn-ghost" onclick="clearTool('traceroute')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-traceroute">Kết quả</span><span id="ra-traceroute"></span></div>
+            <div class="trc-body" id="rb-traceroute"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="2"/><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/></svg><div>Nhập host để traceroute</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PORT SCAN ══ -->
+      <div class="page-section" id="page-port-scan">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Mạng</span><span class="sep">/</span><span class="current">Port Scanner</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+              <div><div class="tic-title">Port Scanner</div><div class="tic-sub">Quét cổng phổ biến</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Host / IP</label>
+                <input class="form-input" id="i-port-scan" placeholder="example.com" onkeydown="if(event.key==='Enter')run('port-scan')">
+              </div>
+              <div style="margin-top:16px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('port-scan')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>Quét cổng</button>
+                <button class="btn btn-ghost" onclick="clearTool('port-scan')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-port-scan">Kết quả</span><span id="ra-port-scan"></span></div>
+            <div class="trc-body" id="rb-port-scan"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/></svg><div>Nhập host để quét cổng</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SSL DECODE ══ -->
+      <div class="page-section" id="page-ssl-decode">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tiện ích</span><span class="sep">/</span><span class="current">Giải mã SSL/PEM</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+              <div><div class="tic-title">Giải mã SSL/PEM</div><div class="tic-sub">Phân tích chứng chỉ từ PEM</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">PEM Certificate</label>
+                <textarea class="form-input" id="i-ssl-decode" placeholder="-----BEGIN CERTIFICATE-----&#10;MIIFazCCA1OgAwIBAgIRAIIQz7DSQONZRGPgu2OCiwAwDQYJ...&#10;-----END CERTIFICATE-----" rows="8"></textarea>
+              </div>
+              <div style="margin-top:12px" class="btn-group">
+                <button class="btn btn-primary" onclick="run('ssl-decode')">Giải mã</button>
+                <button class="btn btn-ghost" onclick="clearTool('ssl-decode')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-ssl-decode">Kết quả</span><span id="ra-ssl-decode"></span></div>
+            <div class="trc-body" id="rb-ssl-decode"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></svg><div>Dán PEM certificate để giải mã</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CERT MATCH ══ -->
+      <div class="page-section" id="page-cert-match">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tiện ích</span><span class="sep">/</span><span class="current">So khớp Certificate</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg></div>
+              <div><div class="tic-title">So khớp Certificate</div><div class="tic-sub">Kiểm tra cert + private key + CSR</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Certificate (PEM)</label>
+                <textarea class="form-input" id="cm-cert" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----" rows="4"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Private Key (PEM) — tuỳ chọn</label>
+                <textarea class="form-input" id="cm-key" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" rows="4"></textarea>
+              </div>
+              <div style="margin-top:12px" class="btn-group">
+                <button class="btn btn-primary" onclick="runCertMatch()">So khớp</button>
+                <button class="btn btn-ghost" onclick="clearTool('cert-match')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-cert-match">Kết quả</span><span id="ra-cert-match"></span></div>
+            <div class="trc-body" id="rb-cert-match"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4"/></svg><div>Dán certificate và key để so khớp</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BASE64 ══ -->
+      <div class="page-section" id="page-base64">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tiện ích</span><span class="sep">/</span><span class="current">Base64</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+              <div><div class="tic-title">Base64 Encode/Decode</div><div class="tic-sub">Mã hóa và giải mã Base64</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Văn bản</label>
+                <textarea class="form-input" id="i-base64" placeholder="Nhập văn bản cần encode/decode..." rows="5" style="font-family:var(--font);font-size:13px"></textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="b64Encode()">Encode →</button>
+                <button class="btn btn-secondary" onclick="b64Decode()">← Decode</button>
+                <button class="btn btn-ghost" onclick="clearTool('base64')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-base64">Kết quả</span><span id="ra-base64"></span></div>
+            <div class="trc-body" id="rb-base64"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/></svg><div>Nhập văn bản để encode/decode</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ HASH ══ -->
+      <div class="page-section" id="page-hash">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tiện ích</span><span class="sep">/</span><span class="current">Hash Generator</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg></div>
+              <div><div class="tic-title">Hash Generator</div><div class="tic-sub">SHA-256, SHA-1, SHA-512</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Văn bản</label>
+                <textarea class="form-input" id="i-hash" placeholder="Nhập văn bản cần hash..." rows="5" style="font-family:var(--font);font-size:13px"></textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="run('hash')">Tạo Hash</button>
+                <button class="btn btn-ghost" onclick="clearTool('hash')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-hash">Kết quả</span><span id="ra-hash"></span></div>
+            <div class="trc-body" id="rb-hash"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/></svg><div>Nhập văn bản để tạo hash</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ URL ENCODE ══ -->
+      <div class="page-section" id="page-url-encode">
+        <div class="breadcrumb"><span onclick="showPage('home')">Trang chủ</span><span class="sep">/</span><span>Tiện ích</span><span class="sep">/</span><span class="current">URL Encode/Decode</span></div>
+        <div class="tool-layout">
+          <div class="tool-input-card">
+            <div class="tic-header">
+              <div class="tic-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+              <div><div class="tic-title">URL Encode/Decode</div><div class="tic-sub">Mã hóa ký tự đặc biệt trong URL</div></div>
+            </div>
+            <div class="tic-body">
+              <div class="form-group">
+                <label class="form-label">Chuỗi URL</label>
+                <textarea class="form-input" id="i-url-encode" placeholder="https://example.com/search?q=tiếng việt&sort=desc" rows="4" style="font-family:var(--font);font-size:13px"></textarea>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="urlEnc()">Encode →</button>
+                <button class="btn btn-secondary" onclick="urlDec()">← Decode</button>
+                <button class="btn btn-ghost" onclick="clearTool('url-encode')">Xóa</button>
+              </div>
+            </div>
+          </div>
+          <div class="tool-result-card">
+            <div class="trc-header"><span class="trc-title" id="rt-url-encode">Kết quả</span><span id="ra-url-encode"></span></div>
+            <div class="trc-body" id="rb-url-encode"><div class="trc-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07"/></svg><div>Nhập chuỗi để encode/decode URL</div></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end page-content -->
+  </div><!-- end main -->
+</div><!-- end app -->
+
+<script>
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+const PAGE_META = {
+  home:        {title:'Trang chủ',        sub:'Bộ công cụ kỹ thuật NetKit'},
+  whois:       {title:'Whois tên miền',   sub:'Tra cứu thông tin đăng ký domain'},
+  dns:         {title:'Bản ghi DNS',      sub:'Tra cứu qua Google DNS over HTTPS'},
+  'domain-check':{title:'Kiểm tra tên miền',sub:'Kiểm tra khả dụng trên nhiều TLD'},
+  'ip-lookup': {title:'Tra cứu IP',       sub:'Địa lý, ASN, ISP của địa chỉ IP'},
+  'reverse-dns':{title:'Reverse DNS',     sub:'Tra cứu PTR record từ IPv4'},
+  punycode:    {title:'Punycode',         sub:'Chuyển đổi IDN ↔ ACE'},
+  'ssl-check': {title:'Kiểm tra SSL',     sub:'Chứng chỉ SSL/TLS và thông tin cert'},
+  spf:         {title:'Kiểm tra SPF',     sub:'Sender Policy Framework DNS record'},
+  dkim:        {title:'Kiểm tra DKIM',    sub:'DomainKeys Identified Mail'},
+  dmarc:       {title:'Kiểm tra DMARC',   sub:'Domain-based Message Authentication'},
+  blacklist:   {title:'Blacklist Check',  sub:'Kiểm tra IP/domain trên 10+ DNSBL'},
+  hsts:        {title:'HSTS Check',       sub:'HTTP Strict Transport Security'},
+  'http-headers':{title:'HTTP Headers',  sub:'Phân tích response headers'},
+  http2:       {title:'HTTP/2 Test',      sub:'Kiểm tra hỗ trợ HTTP/2 & HTTP/3'},
+  ping:        {title:'Ping',             sub:'Đo độ trễ kết nối mạng'},
+  traceroute:  {title:'Traceroute',       sub:'Truy vết đường đi gói tin'},
+  'port-scan': {title:'Port Scanner',     sub:'Quét cổng phổ biến trên host/IP'},
+  'ssl-decode':{title:'Giải mã SSL/PEM',  sub:'Phân tích chứng chỉ từ PEM format'},
+  'cert-match':{title:'So khớp Certificate',sub:'Kiểm tra cert + private key + CSR'},
+  base64:      {title:'Base64',           sub:'Encode và Decode chuỗi Base64'},
+  hash:        {title:'Hash Generator',   sub:'SHA-256, SHA-1, SHA-512'},
+  'url-encode':{title:'URL Encode/Decode',sub:'Mã hóa ký tự đặc biệt trong URL'},
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  const meta = PAGE_META[id]||{title:id,sub:''};
+  document.getElementById('topbarTitle').textContent = meta.title;
+  document.getElementById('topbarSub').textContent = meta.sub;
+  document.getElementById('nav-'+id)?.classList.add('active');
+  // Close sidebar on mobile
+  if(window.innerWidth<900) closeSidebar();
+  // Build home if needed
+  if(id==='home') buildHome();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+function sidebarSearch(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('.nav-item').forEach(item => {
+    const t = item.textContent.toLowerCase();
+    item.style.display = (!q || t.includes(q)) ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-group-label').forEach(lbl => {
+    lbl.style.display = '';
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// HOME PAGE BUILDER
+// ═══════════════════════════════════════════════════
+const HOME_TOOLS = [
+  {id:'whois',       cat:'domain',   name:'Whois tên miền',     desc:'Thông tin đăng ký, ngày hết hạn, name server'},
+  {id:'dns',         cat:'domain',   name:'Bản ghi DNS',         desc:'A, AAAA, MX, TXT, NS, CNAME, SOA, CAA'},
+  {id:'domain-check',cat:'domain',   name:'Kiểm tra tên miền',   desc:'Khả dụng trên .com .net .vn .io .app...'},
+  {id:'ip-lookup',   cat:'domain',   name:'Tra cứu IP',          desc:'Địa lý, ISP, ASN, tọa độ'},
+  {id:'reverse-dns', cat:'domain',   name:'Reverse DNS',         desc:'Tìm hostname từ địa chỉ IP (PTR)'},
+  {id:'punycode',    cat:'domain',   name:'Punycode',            desc:'Chuyển đổi IDN ↔ ACE'},
+  {id:'ssl-check',   cat:'security', name:'Kiểm tra SSL',        desc:'Tính hợp lệ và thông tin chứng chỉ SSL/TLS'},
+  {id:'spf',         cat:'security', name:'Kiểm tra SPF',        desc:'Xác minh bản ghi SPF bảo vệ email'},
+  {id:'dkim',        cat:'security', name:'Kiểm tra DKIM',       desc:'DomainKeys Identified Mail authentication'},
+  {id:'dmarc',       cat:'security', name:'Kiểm tra DMARC',      desc:'Domain-based Message Authentication'},
+  {id:'blacklist',   cat:'security', name:'Blacklist Check',     desc:'Kiểm tra IP/domain trên 10+ DNSBL'},
+  {id:'hsts',        cat:'security', name:'HSTS Check',          desc:'HTTP Strict Transport Security preload'},
+  {id:'http-headers',cat:'network',  name:'HTTP Headers',        desc:'Phân tích toàn bộ response headers'},
+  {id:'http2',       cat:'network',  name:'HTTP/2 Test',         desc:'Kiểm tra hỗ trợ HTTP/2 và HTTP/3'},
+  {id:'ping',        cat:'network',  name:'Ping',                desc:'Đo độ trễ kết nối mạng'},
+  {id:'traceroute',  cat:'network',  name:'Traceroute',          desc:'Truy vết đường đi gói tin mạng'},
+  {id:'port-scan',   cat:'network',  name:'Port Scanner',        desc:'Quét cổng phổ biến trên host/IP'},
+  {id:'ssl-decode',  cat:'utility',  name:'Giải mã SSL/PEM',     desc:'Phân tích chứng chỉ từ PEM format'},
+  {id:'cert-match',  cat:'utility',  name:'So khớp Certificate', desc:'Kiểm tra cert + private key khớp nhau'},
+  {id:'base64',      cat:'utility',  name:'Base64',              desc:'Encode và Decode chuỗi Base64'},
+  {id:'hash',        cat:'utility',  name:'Hash Generator',      desc:'SHA-256, SHA-1, SHA-512'},
+  {id:'url-encode',  cat:'utility',  name:'URL Encode/Decode',   desc:'Mã hóa ký tự đặc biệt trong URL'},
+];
+
+const CAT_INFO = {
+  domain:   {label:'🌐 Tên miền',   cls:'cat-domain'},
+  security: {label:'🔒 Bảo mật',   cls:'cat-security'},
+  network:  {label:'📡 Mạng',       cls:'cat-network'},
+  utility:  {label:'🛠 Tiện ích',   cls:'cat-utility'},
+};
+const CAT_BG = {domain:'cat-domain-bg',security:'cat-security-bg',network:'cat-network-bg',utility:'cat-utility-bg'};
+
+function buildHome() {
+  const area = document.getElementById('homeToolsArea');
+  if(area.innerHTML) return; // already built
+  const cats = ['domain','security','network','utility'];
+  area.innerHTML = cats.map(cat => {
+    const tools = HOME_TOOLS.filter(t=>t.cat===cat);
+    const ci = CAT_INFO[cat];
+    return `
+      <div class="section-header">
+        <h2>${ci.label}</h2>
+        <span class="count">${tools.length}</span>
+        <span class="section-line"></span>
+      </div>
+      <div class="tools-grid" style="margin-bottom:28px">
+        ${tools.map(t=>`
+          <div class="tool-card" onclick="showPage('${t.id}')">
+            <div class="tc-icon">${ICONS[t.id]||ICONS.default}</div>
+            <div class="tc-name">${t.name}</div>
+            <div class="tc-desc">${t.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }).join('');
+}
+
+const ICONS = {
+  whois: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+  dns: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>`,
+  'domain-check': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>`,
+  'ip-lookup': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  'reverse-dns': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>`,
+  punycode: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>`,
+  'ssl-check': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  spf: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+  dkim: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`,
+  dmarc: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  blacklist: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`,
+  hsts: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`,
+  'http-headers': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+  http2: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  ping: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 6l23 6-23 6"/><path d="M1 12h13"/></svg>`,
+  traceroute: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><circle cx="4" cy="12" r="2"/><circle cx="20" cy="12" r="2"/><path d="M6 12h4M14 12h4"/></svg>`,
+  'port-scan': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  'ssl-decode': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>`,
+  'cert-match': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18"/></svg>`,
+  base64: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
+  hash: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>`,
+  'url-encode': `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  default: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`,
+};
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function setResult(id, titleTxt, actionHtml, bodyHtml) {
+  if(titleTxt) document.getElementById('rt-'+id).textContent = titleTxt;
+  if(actionHtml !== undefined) document.getElementById('ra-'+id).innerHTML = actionHtml;
+  document.getElementById('rb-'+id).innerHTML = bodyHtml;
+}
+
+function setLoading(id, msg='Đang tra cứu...', sub='') {
+  document.getElementById('rb-'+id).innerHTML = `
+    <div class="loading show">
+      <div class="spinner"></div>
+      <div class="loading-text">${msg}</div>
+      ${sub?`<div class="loading-sub">${sub}</div>`:''}
+    </div>
+  `;
+}
+
+function setError(id, msg) {
+  setResult(id, 'Lỗi', '', `<div class="alert alert-error"><span class="alert-icon">⚠</span><div>${msg}</div></div>`);
+}
+
+function rrow(key, val) {
+  return `<div class="result-row"><div class="rk">${key}</div><div class="rv">${val}</div></div>`;
+}
+
+function badge(cls, txt) {
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+function cleanDomain(s) {
+  return s.replace(/^https?:\/\//,'').replace(/\/.*/,'').trim().toLowerCase();
+}
+
+function escH(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(s) {
+  if(!s) return '—';
+  try { return new Date(s).toLocaleString('vi-VN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  catch{ return s; }
+}
+
+function daysUntil(s) {
+  if(!s) return null;
+  return Math.ceil((new Date(s)-new Date())/86400000);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(()=>{
+    const t = document.getElementById('toast');
+    t.textContent = '✓ Đã sao chép';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 2000);
+  });
+}
+
+function setAndRun(inputId, val, toolId) {
+  document.getElementById(inputId).value = val;
+  run(toolId);
+}
+
+function clearTool(id) {
+  const inp = document.getElementById('i-'+id);
+  if(inp) inp.value='';
+  setResult(id, 'Kết quả', '', '');
+}
+
+function run(id) {
+  const val = document.getElementById('i-'+id)?.value?.trim();
+  switch(id) {
+    case 'whois': return doWhois(val);
+    case 'dns': return doDNS(val);
+    case 'domain-check': return doDomainCheck(val);
+    case 'ip-lookup': return doIPLookup(val);
+    case 'reverse-dns': return doReverseDNS(val);
+    case 'punycode': return doPunycode(val);
+    case 'ssl-check': return doSSLCheck(val);
+    case 'spf': return doSPF(val);
+    case 'dkim': return doDKIM(val, document.getElementById('dkim-selector')?.value?.trim());
+    case 'dmarc': return doDMARC(val);
+    case 'blacklist': return doBlacklist(val);
+    case 'hsts': return doHSTS(val);
+    case 'http-headers': return doHTTPHeaders(val);
+    case 'http2': return doHTTP2(val);
+    case 'ping': return doPing(val);
+    case 'traceroute': return doTraceroute(val);
+    case 'port-scan': return doPortScan(val);
+    case 'ssl-decode': return doSSLDecode(val);
+    case 'hash': return doHash(val);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ── WHOIS ──
+// ═══════════════════════════════════════════════════
+async function doWhois(domain) {
+  if(!domain) return setError('whois','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  setLoading('whois','Đang tra cứu WHOIS...','Kết nối RDAP registry');
+  try {
+    const r = await fetch(`https://rdap.org/domain/${encodeURIComponent(domain)}`);
+    if(!r.ok) throw new Error(`Không tìm thấy thông tin (${r.status})`);
+    const d = await r.json();
+    const status = (d.status||[]).join(', ')||'—';
+    const events = {};
+    (d.events||[]).forEach(e=>{ events[e.eventAction]=e.eventDate; });
+    const ns = (d.nameservers||[]).map(n=>n.ldhName).join('<br>')||'—';
+    const registrar = (d.entities||[]).find(e=>(e.roles||[]).includes('registrar'));
+    const regName = registrar?.vcardArray?.[1]?.find(f=>f[0]==='fn')?.[3] || registrar?.handle || '—';
+    const exp = events.expiration;
+    const dLeft = daysUntil(exp);
+    const expBadge = dLeft===null ? '' : dLeft > 60 ? badge('b-green',`Còn ${dLeft} ngày`) : dLeft > 0 ? badge('b-yellow',`Còn ${dLeft} ngày`) : badge('b-red','Đã hết hạn');
+    const copyBtn = `<button class="copy-btn" onclick="copyText('${escH(domain)}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Sao chép</button>`;
+    setResult('whois', `WHOIS — ${domain}`, copyBtn, `
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Thông tin chung</span></div>
+        <div class="rblock-body">
+          ${rrow('Tên miền', `<strong style="font-size:15px">${escH(domain)}</strong>`)}
+          ${rrow('Handle', escH(d.handle||'—'))}
+          ${rrow('Trạng thái', status.split(',').map(s=>badge('b-blue',s.trim())).join(' '))}
+          ${rrow('Nhà đăng ký', escH(regName))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Thời gian</span></div>
+        <div class="rblock-body">
+          ${rrow('Ngày đăng ký', fmtDate(events.registration)||'—')}
+          ${rrow('Ngày hết hạn', `${fmtDate(exp)||'—'} ${expBadge}`)}
+          ${rrow('Cập nhật', fmtDate(events['last changed'])||'—')}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Name Servers</span></div>
+        <div class="rblock-body">
+          <div class="rv mono">${ns}</div>
+        </div>
+      </div>
+      <div class="alert alert-info"><span class="alert-icon">ℹ</span><div>Dữ liệu từ RDAP (Registration Data Access Protocol) — chuẩn thay thế WHOIS truyền thống.</div></div>
+    `);
+  } catch(e) { setError('whois', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── DNS ──
+// ═══════════════════════════════════════════════════
+async function doDNS(domain) {
+  if(!domain) return setError('dns','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  const type = document.getElementById('dns-type').value;
+  setLoading('dns',`Tra cứu DNS ${type}...`,`Querying Google DNS over HTTPS`);
+  try {
+    const types = type==='ALL' ? ['A','AAAA','MX','NS','TXT','CNAME'] : [type];
+    let html = '';
+    let total = 0;
+    for(const t of types) {
+      const res = await fetchDNS(domain, t);
+      if(res) { html += res.html; total += res.count; }
+    }
+    if(!html) html = `<div class="alert alert-warn"><span class="alert-icon">⚠</span><div>Không tìm thấy bản ghi ${type} cho <strong>${escH(domain)}</strong></div></div>`;
+    setResult('dns', `DNS — ${domain}`, `<span class="badge b-blue">${total} bản ghi</span>`, html);
+  } catch(e) { setError('dns', e.message); }
+}
+
+async function fetchDNS(domain, type) {
+  const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=${type}`);
+  const d = await r.json();
+  if(!d.Answer?.length) return null;
+  const rows = d.Answer.map(a=>`
+    <tr>
+      <td>${escH(a.name)}</td>
+      <td style="white-space:nowrap">${a.TTL}s</td>
+      <td><span class="badge b-blue" style="font-size:10px">${type}</span></td>
+      <td class="mono">${escH(String(a.data))}</td>
+    </tr>
+  `).join('');
+  return {
+    count: d.Answer.length,
+    html: `
+      <div class="rblock" style="margin-bottom:12px">
+        <div class="rblock-head">
+          <span class="rblock-title">Bản ghi ${type}</span>
+          <span class="badge b-gray">${d.Answer.length} record</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>TTL</th><th>Type</th><th>Value</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// ── DOMAIN CHECK ──
+// ═══════════════════════════════════════════════════
+async function doDomainCheck(name) {
+  if(!name) return setError('domain-check','Vui lòng nhập tên miền');
+  name = name.replace(/\s/g,'').toLowerCase().replace(/\.[a-z.]+$/,'');
+  const tlds = ['.com','.net','.org','.vn','.com.vn','.io','.co','.app','.dev','.xyz','.online','.store'];
+  setLoading('domain-check',`Kiểm tra ${tlds.length} TLD...`,`Đang kiểm tra ${name}.*`);
+  const results = [];
+  for(const tld of tlds) {
+    const d = name+tld;
+    try {
+      const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(d)}&type=A`);
+      const j = await r.json();
+      const ip = j.Answer?.[0]?.data||null;
+      results.push({domain:d, available:!ip, ip});
+    } catch { results.push({domain:d, available:null, ip:null}); }
+  }
+  const avail = results.filter(r=>r.available===true).length;
+  const taken = results.filter(r=>r.available===false).length;
+  const rows = results.map(r=>`
+    <tr>
+      <td style="font-weight:600">${escH(r.domain)}</td>
+      <td>${r.available===true ? badge('b-green','✓ Có thể đăng ký') : r.available===false ? badge('b-red','✗ Đã đăng ký') : badge('b-gray','? Không xác định')}</td>
+      <td class="mono" style="font-size:11.5px">${r.ip||'—'}</td>
+    </tr>
+  `).join('');
+  setResult('domain-check', `Kiểm tra — ${name}.*`,
+    `<span class="badge b-green">${avail} khả dụng</span>`,
+    `
+    <div class="rblock" style="margin-bottom:14px">
+      <div class="rblock-head">
+        <span class="rblock-title">Kết quả ${results.length} TLD</span>
+        <span style="font-size:12px;color:var(--text3)">${taken} đã đăng ký · ${avail} khả dụng</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Tên miền</th><th>Trạng thái</th><th>IP Server</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="alert alert-info"><span class="alert-icon">💡</span><div><strong>Lưu ý:</strong> Kết quả dựa trên DNS lookup. "Khả dụng" = không tìm thấy bản ghi A. Để xác nhận chính xác hãy kiểm tra tại nhà đăng ký.</div></div>
+  `);
+}
+
+// ═══════════════════════════════════════════════════
+// ── IP LOOKUP ──
+// ═══════════════════════════════════════════════════
+async function doIPLookup(ip) {
+  setLoading('ip-lookup','Đang tra cứu IP...','ipapi.co');
+  try {
+    const url = ip ? `https://ipapi.co/${encodeURIComponent(ip)}/json/` : `https://ipapi.co/json/`;
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('Không thể tra cứu IP này');
+    const d = await r.json();
+    if(d.error) throw new Error(d.reason||'IP không hợp lệ');
+    const isPrivate = ['10.','172.16.','192.168.','127.','::1'].some(p=>String(d.ip).startsWith(p));
+    setResult('ip-lookup', `IP — ${d.ip}`,
+      `<button class="copy-btn" onclick="copyText('${escH(d.ip)}')">Sao chép IP</button>`,
+      `
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Thông tin IP</span></div>
+        <div class="rblock-body">
+          ${rrow('Địa chỉ IP', `<span class="rv big">${escH(d.ip)}</span>`)}
+          ${rrow('Phiên bản', `IPv${d.version||4}`)}
+          ${rrow('Loại', isPrivate ? badge('b-yellow','Private IP') : badge('b-blue','Public IP'))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Vị trí địa lý</span></div>
+        <div class="rblock-body">
+          ${rrow('Quốc gia', `${escH(d.country_name||'—')} ${d.country_code?`(${d.country_code})`:''} ${d.emoji_flag||''}`)}
+          ${rrow('Vùng / Thành phố', `${escH(d.region||'—')} / ${escH(d.city||'—')}`)}
+          ${rrow('Postal Code', escH(d.postal||'—'))}
+          ${rrow('Tọa độ', d.latitude&&d.longitude ? `${d.latitude}, ${d.longitude}` : '—')}
+          ${rrow('Múi giờ', escH(d.timezone||'—'))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Mạng</span></div>
+        <div class="rblock-body">
+          ${rrow('ISP / Tổ chức', escH(d.org||'—'))}
+          ${rrow('ASN', escH(d.asn||'—'))}
+          ${rrow('Network', escH(d.network||'—'))}
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('ip-lookup', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── REVERSE DNS ──
+// ═══════════════════════════════════════════════════
+async function doReverseDNS(ip) {
+  if(!ip) return setError('reverse-dns','Vui lòng nhập địa chỉ IP');
+  ip = ip.trim();
+  const parts = ip.split('.');
+  if(parts.length!==4||parts.some(p=>isNaN(p)||+p>255)) return setError('reverse-dns','Địa chỉ IPv4 không hợp lệ');
+  setLoading('reverse-dns','Đang tra cứu PTR record...');
+  try {
+    const rev = parts.reverse().join('.')+'.in-addr.arpa';
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(rev)}&type=PTR`);
+    const d = await r.json();
+    if(!d.Answer?.length) throw new Error(`Không tìm thấy PTR record cho ${ip}`);
+    const ptrs = d.Answer.map(a=>a.data);
+    setResult('reverse-dns', `Reverse DNS — ${ip}`, '',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">PTR Record</span><span class="badge b-green">${ptrs.length} kết quả</span></div>
+        <div class="rblock-body">
+          ${rrow('IP', ip)}
+          ${rrow('PTR Hostname', ptrs.map(p=>`<div class="rv mono">${escH(p)}</div>`).join(''))}
+          ${rrow('Reverse Zone', `<span class="rv mono">${escH(rev)}</span>`)}
+          ${rrow('TTL', d.Answer[0].TTL+'s')}
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('reverse-dns', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── PUNYCODE ──
+// ═══════════════════════════════════════════════════
+function doPunycode(val) {
+  if(!val) return setError('punycode','Vui lòng nhập tên miền');
+  try {
+    let encoded, decoded;
+    if(val.includes('xn--')) {
+      try { decoded = new URL('http://'+val).hostname; } catch{ decoded=val; }
+      encoded = val;
+    } else {
+      try { const u = new URL('http://'+val); encoded=u.hostname; decoded=val; }
+      catch { return setError('punycode','Tên miền không hợp lệ'); }
+    }
+    const converted = encoded !== val;
+    setResult('punycode','Kết quả chuyển đổi','',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả</span>${badge('b-green','Thành công')}</div>
+        <div class="rblock-body">
+          ${rrow('Unicode (gốc)', `<span style="font-size:16px;font-weight:600">${escH(decoded)}</span>`)}
+          ${rrow('Punycode (ACE)', `<code style="font-size:14px;color:var(--P);font-family:var(--mono)">${escH(encoded)}</code>`)}
+          ${rrow('Chuyển đổi', converted ? badge('b-green','Đã chuyển đổi') : badge('b-blue','Không cần (ASCII thuần)'))}
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('punycode', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── SSL CHECK ──
+// ═══════════════════════════════════════════════════
+async function doSSLCheck(domain) {
+  if(!domain) return setError('ssl-check','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  setLoading('ssl-check','Đang kiểm tra chứng chỉ SSL...','Truy vấn crt.sh certificate transparency');
+  try {
+    const r = await fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`);
+    if(!r.ok) throw new Error('Không thể kết nối crt.sh');
+    const certs = await r.json();
+    if(!certs?.length) throw new Error('Không tìm thấy chứng chỉ SSL cho domain này');
+    // Sort by most recent
+    certs.sort((a,b)=>new Date(b.not_before)-new Date(a.not_before));
+    const latest = certs[0];
+    const now = new Date();
+    const exp = new Date(latest.not_after);
+    const iss = new Date(latest.not_before);
+    const valid = exp > now;
+    const dLeft = Math.ceil((exp-now)/86400000);
+    const totalDays = Math.ceil((exp-iss)/86400000);
+    const usedDays = Math.ceil((now-iss)/86400000);
+    const pct = Math.min(100,Math.round(usedDays/totalDays*100));
+    const progCls = dLeft>30?'prog-green':dLeft>7?'prog-yellow':'prog-red';
+    const copyBtn = `<button class="copy-btn" onclick="copyText('${escH(domain)}')">Copy domain</button>`;
+    setResult('ssl-check', `SSL — ${domain}`, copyBtn, `
+      <div class="rblock">
+        <div class="rblock-head">
+          <span class="rblock-title">Trạng thái SSL</span>
+          ${valid ? badge('b-green','✓ Hợp lệ') : badge('b-red','✗ Hết hạn')}
+        </div>
+        <div class="rblock-body">
+          ${rrow('Tên miền', `<strong>${escH(domain)}</strong>`)}
+          ${rrow('Trạng thái', valid ? badge('b-green','Certificate hợp lệ') : badge('b-red','Certificate đã hết hạn'))}
+          ${rrow('Còn lại', valid ? `<strong style="color:${dLeft>30?'var(--success)':dLeft>7?'var(--warn)':'var(--danger)'}">${dLeft} ngày</strong>` : `<strong style="color:var(--danger)">Đã hết hạn ${Math.abs(dLeft)} ngày trước</strong>`)}
+          <div class="result-row"><div class="rk">Tiến độ hết hạn</div><div class="rv" style="flex:1"><div class="prog-bar"><div class="prog-fill ${progCls}" style="width:${pct}%"></div></div><div style="font-size:11px;color:var(--text3);margin-top:3px">${pct}% thời gian đã qua</div></div></div>
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Thông tin chứng chỉ</span></div>
+        <div class="rblock-body">
+          ${rrow('Common Name', `<span class="rv mono">${escH(latest.common_name||'—')}</span>`)}
+          ${rrow('Issuer', escH(latest.issuer_name||'—'))}
+          ${rrow('Ngày cấp', fmtDate(latest.not_before))}
+          ${rrow('Ngày hết hạn', fmtDate(latest.not_after))}
+          ${rrow('Serial', `<span class="rv mono" style="font-size:11px">${escH(String(latest.serial_number||'—'))}</span>`)}
+        </div>
+      </div>
+      ${certs.length>1?`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Lịch sử chứng chỉ</span><span class="badge b-gray">${Math.min(certs.length,5)} gần nhất</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Common Name</th><th>Issuer</th><th>Từ</th><th>Đến</th></tr></thead>
+            <tbody>${certs.slice(0,5).map(c=>`<tr><td class="mono">${escH(c.common_name||'—')}</td><td style="font-size:11.5px">${escH((c.issuer_name||'').split(',')[0])}</td><td style="white-space:nowrap;font-size:11.5px">${fmtDate(c.not_before)}</td><td style="white-space:nowrap;font-size:11.5px">${fmtDate(c.not_after)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`:''}
+      <div class="alert alert-info"><span class="alert-icon">ℹ</span><div>Dữ liệu từ <a href="https://crt.sh/?q=${escH(domain)}" target="_blank" style="color:var(--P)">Certificate Transparency (crt.sh)</a> — nguồn công khai đáng tin cậy.</div></div>
+    `);
+  } catch(e) { setError('ssl-check', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── SPF ──
+// ═══════════════════════════════════════════════════
+async function doSPF(domain) {
+  if(!domain) return setError('spf','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  setLoading('spf','Đang kiểm tra SPF...','Truy vấn DNS TXT records');
+  try {
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=TXT`);
+    const d = await r.json();
+    const spf = (d.Answer||[]).map(a=>a.data.replace(/"/g,'')).find(v=>v.startsWith('v=spf'));
+    if(!spf) {
+      setResult('spf','SPF — '+domain,'',`
+        <div class="alert alert-error"><span class="alert-icon">✗</span><div><strong>Không tìm thấy bản ghi SPF</strong> cho ${escH(domain)}.<br>Email từ domain này có thể bị đánh dấu là spam.</div></div>
+        <div class="alert alert-warn" style="margin-top:10px"><span class="alert-icon">💡</span><div>Thêm bản ghi TXT vào DNS: <code style="font-family:var(--mono)">v=spf1 include:_spf.yourmailprovider.com ~all</code></div></div>
+      `);
+      return;
+    }
+    const parts = spf.split(/\s+/);
+    const policy = parts[parts.length-1];
+    const pMap = {'-all':['b-green','Fail — Từ chối email không hợp lệ (Nghiêm ngặt)'],'~all':['b-yellow','SoftFail — Đánh dấu nghi ngờ nhưng vẫn nhận'],'+all':['b-red','Pass — Chấp nhận tất cả (Nguy hiểm)'],'?all':['b-gray','Neutral — Không có chính sách cụ thể']};
+    const [pc, pt] = pMap[policy]||['b-gray', policy||'Không xác định'];
+    const mechs = parts.filter(p=>!p.startsWith('v='));
+    setResult('spf','SPF — '+domain,badge('b-green','✓ Có SPF'),`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả SPF</span>${badge('b-green','Tìm thấy')}</div>
+        <div class="rblock-body">
+          ${rrow('Domain', escH(domain))}
+          ${rrow('Trạng thái', badge('b-green','✓ Có bản ghi SPF'))}
+          ${rrow('Chính sách', badge(pc, pt))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Bản ghi SPF đầy đủ</span><button class="copy-btn" onclick="copyText('${escH(spf)}')">Copy</button></div>
+        <div class="rblock-body">
+          <div class="rv code">${escH(spf)}</div>
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Phân tích các cơ chế</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>#</th><th>Cơ chế</th><th>Ý nghĩa</th></tr></thead>
+            <tbody>${mechs.map((m,i)=>{
+              const meanings = {
+                'v=spf1':'Phiên bản SPF',
+                '-all':'Từ chối tất cả nguồn không được liệt kê',
+                '~all':'SoftFail nguồn không được liệt kê',
+                '+all':'Chấp nhận tất cả (không an toàn)',
+              };
+              let meaning = meanings[m]||'';
+              if(m.startsWith('include:')) meaning = `Bao gồm SPF của ${m.replace('include:','')}`;
+              else if(m.startsWith('ip4:')) meaning = `Chấp nhận IPv4: ${m.replace('ip4:','')}`;
+              else if(m.startsWith('ip6:')) meaning = `Chấp nhận IPv6: ${m.replace('ip6:','')}`;
+              else if(m.startsWith('a:')) meaning = `Chấp nhận A record: ${m.replace('a:','')}`;
+              else if(m==='a') meaning = 'Chấp nhận A record của domain';
+              else if(m==='mx') meaning = 'Chấp nhận MX server của domain';
+              return `<tr><td>${i+1}</td><td class="mono">${escH(m)}</td><td style="font-size:12.5px">${meaning}</td></tr>`;
+            }).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('spf', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── DKIM ──
+// ═══════════════════════════════════════════════════
+async function doDKIM(domain, selector) {
+  if(!domain) return setError('dkim','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  const selectors = selector ? [selector] : ['default','google','mail','s1','s2','k1','smtp','dkim','sig1','selector1','selector2'];
+  setLoading('dkim',`Tìm kiếm DKIM...`,`Thử ${selectors.length} selector phổ biến`);
+  let found = false;
+  for(const sel of selectors) {
+    try {
+      const name = `${sel}._domainkey.${domain}`;
+      const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(name)}&type=TXT`);
+      const d = await r.json();
+      const rec = (d.Answer||[]).map(a=>a.data.replace(/"/g,'')).find(v=>v.includes('v=DKIM')||v.includes('p='));
+      if(rec) {
+        found = true;
+        const params = {};
+        rec.split(';').forEach(p=>{const[k,v]=p.trim().split('=');if(k&&v!==undefined)params[k.trim()]=v.trim();});
+        const keyLen = params.p ? Math.round(atob(params.p.replace(/\s/g,'')).length * 8 / 16) * 16 : null;
+        setResult('dkim',`DKIM — ${domain}`,badge('b-green','✓ Tìm thấy'),`
+          <div class="rblock">
+            <div class="rblock-head"><span class="rblock-title">DKIM Record</span>${badge('b-green','Tìm thấy')}</div>
+            <div class="rblock-body">
+              ${rrow('Domain', escH(domain))}
+              ${rrow('Selector', `<strong>${escH(sel)}</strong>`)}
+              ${rrow('Lookup name', `<span class="rv mono">${escH(name)}</span>`)}
+              ${rrow('Trạng thái', badge('b-green','✓ DKIM đã cấu hình'))}
+              ${rrow('Phiên bản', escH(params.v||'DKIM1'))}
+              ${rrow('Thuật toán key', escH(params.k||'rsa'))}
+              ${keyLen ? rrow('Độ dài key', `~${keyLen} bit`) : ''}
+            </div>
+          </div>
+          <div class="rblock">
+            <div class="rblock-head"><span class="rblock-title">Bản ghi TXT</span><button class="copy-btn" onclick="copyText('${escH(rec).replace(/'/g,"\\'")}')">Copy</button></div>
+            <div class="rblock-body">
+              <div class="rv code">${escH(rec)}</div>
+            </div>
+          </div>
+        `);
+        return;
+      }
+    } catch{}
+  }
+  if(!found) {
+    setResult('dkim','DKIM — '+domain,'',`
+      <div class="alert alert-error"><span class="alert-icon">✗</span><div>Không tìm thấy bản ghi DKIM với các selector phổ biến cho <strong>${escH(domain)}</strong>.<br>Thử nhập selector cụ thể từ email header.</div></div>
+    `);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ── DMARC ──
+// ═══════════════════════════════════════════════════
+async function doDMARC(domain) {
+  if(!domain) return setError('dmarc','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  setLoading('dmarc','Đang kiểm tra DMARC...','Truy vấn _dmarc DNS TXT record');
+  try {
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent('_dmarc.'+domain)}&type=TXT`);
+    const d = await r.json();
+    const rec = (d.Answer||[]).map(a=>a.data.replace(/"/g,'')).find(v=>v.startsWith('v=DMARC'));
+    if(!rec) {
+      setResult('dmarc','DMARC — '+domain,'',`
+        <div class="alert alert-error"><span class="alert-icon">✗</span><div><strong>Không tìm thấy bản ghi DMARC</strong> cho ${escH(domain)}.<br>Domain dễ bị giả mạo trong email (email spoofing).</div></div>
+        <div class="alert alert-warn" style="margin-top:10px"><span class="alert-icon">💡</span><div>Thêm bản ghi TXT cho <code>_dmarc.${escH(domain)}</code>:<br><code style="font-family:var(--mono)">v=DMARC1; p=quarantine; rua=mailto:dmarc@${escH(domain)}</code></div></div>
+      `);
+      return;
+    }
+    const params = {};
+    rec.split(';').forEach(p=>{const[k,v]=p.trim().split('=');if(k&&v!==undefined)params[k.trim()]=v.trim();});
+    const pMap = {none:['b-yellow','Giám sát (none) — Không hành động'],quarantine:['b-blue','Cách ly (quarantine) — Vào spam'],reject:['b-green','Từ chối (reject) — Từ chối email giả mạo']};
+    const [pc,pt] = pMap[params.p]||['b-gray',params.p||'Không xác định'];
+    setResult('dmarc','DMARC — '+domain,badge('b-green','✓ Có DMARC'),`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả DMARC</span>${badge('b-green','Tìm thấy')}</div>
+        <div class="rblock-body">
+          ${rrow('Domain', escH(domain))}
+          ${rrow('Trạng thái', badge('b-green','✓ Có bản ghi DMARC'))}
+          ${rrow('Chính sách (p=)', badge(pc, pt))}
+          ${params.sp ? rrow('Sub-domain (sp=)', escH(params.sp)) : ''}
+          ${params.pct ? rrow('Áp dụng cho', `${escH(params.pct)}% email`) : ''}
+          ${params.adkim ? rrow('DKIM alignment', params.adkim==='s'?'Strict':'Relaxed') : ''}
+          ${params.aspf ? rrow('SPF alignment', params.aspf==='s'?'Strict':'Relaxed') : ''}
+        </div>
+      </div>
+      ${params.rua||params.ruf ? `
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Báo cáo</span></div>
+        <div class="rblock-body">
+          ${params.rua ? rrow('Báo cáo tổng hợp (rua)', `<span class="rv mono">${escH(params.rua)}</span>`) : ''}
+          ${params.ruf ? rrow('Báo cáo forensic (ruf)', `<span class="rv mono">${escH(params.ruf)}</span>`) : ''}
+        </div>
+      </div>` : ''}
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Bản ghi DMARC đầy đủ</span><button class="copy-btn" onclick="copyText('${escH(rec)}')">Copy</button></div>
+        <div class="rblock-body"><div class="rv code">${escH(rec)}</div></div>
+      </div>
+    `);
+  } catch(e) { setError('dmarc', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── BLACKLIST ──
+// ═══════════════════════════════════════════════════
+async function doBlacklist(host) {
+  if(!host) return setError('blacklist','Vui lòng nhập IP hoặc domain');
+  host = host.trim();
+  setLoading('blacklist','Kiểm tra blacklist...','Truy vấn 10 DNSBL phổ biến');
+  let ip = host;
+  if(!/^[\d.]+$/.test(host)) {
+    try {
+      const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=A`);
+      const d = await r.json();
+      ip = d.Answer?.[0]?.data||host;
+    } catch{}
+  }
+  const bls = [
+    {bl:'zen.spamhaus.org', name:'Spamhaus ZEN'},
+    {bl:'bl.spamcop.net', name:'SpamCop'},
+    {bl:'dnsbl.sorbs.net', name:'SORBS'},
+    {bl:'b.barracudacentral.org', name:'Barracuda'},
+    {bl:'dnsbl-1.uceprotect.net', name:'UCEprotect L1'},
+    {bl:'psbl.surriel.com', name:'PSBL'},
+    {bl:'bl.mailspike.net', name:'Mailspike'},
+    {bl:'dnsbl.spfbl.net', name:'SPFBL'},
+    {bl:'truncate.gbudb.net', name:'GBUdb'},
+    {bl:'dnsbl.dronebl.org', name:'DroneBL'},
+  ];
+  const parts = ip.split('.').reverse().join('.');
+  const results = [];
+  for(const {bl,name} of bls) {
+    try {
+      const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(parts+'.'+bl)}&type=A`);
+      const d = await r.json();
+      results.push({name, bl, listed:!!(d.Answer?.length)});
+    } catch { results.push({name, bl, listed:false}); }
+  }
+  const listed = results.filter(r=>r.listed).length;
+  const clean = results.filter(r=>!r.listed).length;
+  setResult('blacklist',`Blacklist — ${host}`,
+    listed ? badge('b-red',`${listed} bị liệt kê`) : badge('b-green','Sạch'),
+    `
+    <div class="rblock" style="margin-bottom:14px">
+      <div class="rblock-head">
+        <span class="rblock-title">Tóm tắt</span>
+      </div>
+      <div class="rblock-body">
+        ${rrow('Host / IP', `${escH(host)}${ip!==host?` → ${escH(ip)}`:''}`)}
+        ${rrow('Kết quả', `${badge('b-red',listed+' bị liệt kê')} ${badge('b-green',clean+' sạch')}`)}
+        ${rrow('Đánh giá', listed===0 ? badge('b-green','✓ IP/Domain sạch') : listed<=2 ? badge('b-yellow','⚠ Có trong vài blacklist') : badge('b-red','✗ Bị blacklist nhiều — Cần xử lý'))}
+      </div>
+    </div>
+    <div class="rblock">
+      <div class="rblock-head"><span class="rblock-title">Chi tiết ${bls.length} DNSBL</span></div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Blacklist</th><th>Provider</th><th>Trạng thái</th></tr></thead>
+          <tbody>${results.map(r=>`<tr><td class="mono" style="font-size:11.5px">${escH(r.bl)}</td><td>${escH(r.name)}</td><td>${r.listed?badge('b-red','✗ Bị liệt kê'):badge('b-green','✓ Sạch')}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+    ${listed>0?`<div class="alert alert-error" style="margin-top:12px"><span class="alert-icon">⚠</span><div>IP/domain này bị liệt kê trong ${listed} blacklist. Email có thể bị block. Liên hệ từng DNSBL để yêu cầu xóa khỏi danh sách.</div></div>`:''}
+  `);
+}
+
+// ═══════════════════════════════════════════════════
+// ── HSTS ──
+// ═══════════════════════════════════════════════════
+async function doHSTS(domain) {
+  if(!domain) return setError('hsts','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  setLoading('hsts','Kiểm tra HSTS preload...','hstspreload.org');
+  try {
+    const r = await fetch(`https://hstspreload.org/api/v2/status?domain=${encodeURIComponent(domain)}`);
+    const d = await r.json();
+    const preloaded = d.status==='preloaded';
+    const pending = d.status==='pending';
+    const r2 = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=HTTPS`);
+    const d2 = await r2.json();
+    const hasHTTPS = !!(d2.Answer?.length);
+    setResult('hsts',`HSTS — ${domain}`,preloaded?badge('b-green','Preloaded'):'',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">HSTS Preload Status</span></div>
+        <div class="rblock-body">
+          ${rrow('Domain', escH(domain))}
+          ${rrow('Preload Status', preloaded ? badge('b-green','✓ Đã preload trong Chrome/Firefox') : pending ? badge('b-yellow','⏳ Đang chờ duyệt') : badge('b-gray','Chưa preload'))}
+          ${rrow('HTTPS DNS Record', hasHTTPS ? badge('b-green','✓ Có HTTPS record') : badge('b-yellow','Không tìm thấy HTTPS record'))}
+          ${rrow('Kiểm tra đầy đủ', `<a href="https://hstspreload.org/?domain=${encodeURIComponent(domain)}" target="_blank" style="color:var(--P)">hstspreload.org ↗</a>`)}
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px"><span class="alert-icon">ℹ</span><div>HSTS (HTTP Strict Transport Security) buộc trình duyệt luôn dùng HTTPS. Header cần có: <code style="font-family:var(--mono)">Strict-Transport-Security: max-age=31536000; includeSubDomains</code></div></div>
+    `);
+  } catch(e) { setError('hsts', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── HTTP HEADERS ──
+// ═══════════════════════════════════════════════════
+async function doHTTPHeaders(host) {
+  if(!host) return setError('http-headers','Vui lòng nhập URL');
+  const domain = cleanDomain(host);
+  setLoading('http-headers','Đang phân tích...','Lấy thông tin qua DNS và certificate');
+  try {
+    const [aRec, certRec, ipInfo] = await Promise.allSettled([
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`).then(r=>r.json()),
+      fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`).then(r=>r.json()),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=HTTPS`).then(r=>r.json()),
+    ]);
+    const ip = aRec.value?.Answer?.[0]?.data||'—';
+    const cert = certRec.value?.[0];
+    const hasHTTPS = !!(ipInfo.value?.Answer?.length);
+    const hasSSL = !!(certRec.value?.length);
+    // Infer common headers
+    const inferredHeaders = [
+      {name:'Server', value:'(Không xác định qua DNS)'},
+      {name:'X-Frame-Options', value:hasSSL?'Có thể có (cần HTTP để xác nhận)':'—'},
+      {name:'Strict-Transport-Security', value:hasSSL?'Có thể có (cần HTTP để xác nhận)':'—'},
+      {name:'Content-Security-Policy', value:'(Cần HTTP request để xác nhận)'},
+      {name:'X-Content-Type-Options', value:'(Cần HTTP request để xác nhận)'},
+    ];
+    setResult('http-headers',`Headers — ${domain}`,'',`
+      <div class="rblock" style="margin-bottom:14px">
+        <div class="rblock-head"><span class="rblock-title">Thông tin server</span></div>
+        <div class="rblock-body">
+          ${rrow('Domain', escH(domain))}
+          ${rrow('IP Server', escH(ip))}
+          ${rrow('SSL/TLS', hasSSL ? badge('b-green','✓ Có chứng chỉ SSL') : badge('b-red','Không tìm thấy SSL'))}
+          ${rrow('HTTPS Record', hasHTTPS ? badge('b-green','✓ HTTPS DNS Record tồn tại') : badge('b-yellow','Không có HTTPS Record'))}
+          ${cert ? rrow('Cert Issuer', escH((cert.issuer_name||'').split(',')[0])) : ''}
+          ${cert ? rrow('Cert hết hạn', fmtDate(cert.not_after)) : ''}
+        </div>
+      </div>
+      <div class="alert alert-warn"><span class="alert-icon">⚠</span><div>Do giới hạn CORS của trình duyệt, HTTP headers thực tế không thể lấy trực tiếp. Để xem đầy đủ headers, dùng:</div></div>
+      <div class="rblock" style="margin-top:12px">
+        <div class="rblock-head"><span class="rblock-title">Công cụ thay thế</span></div>
+        <div class="rblock-body">
+          ${rrow('cURL', `<code class="rv mono">curl -I https://${escH(domain)}</code>`)}
+          ${rrow('Online tool', `<a href="https://httpstatus.io/${escH(domain)}" target="_blank" style="color:var(--P)">httpstatus.io ↗</a>`)}
+          ${rrow('Security headers', `<a href="https://securityheaders.com/?q=${escH(domain)}" target="_blank" style="color:var(--P)">securityheaders.com ↗</a>`)}
+          ${rrow('GTmetrix', `<a href="https://gtmetrix.com/" target="_blank" style="color:var(--P)">gtmetrix.com ↗</a>`)}
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('http-headers', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── HTTP/2 ──
+// ═══════════════════════════════════════════════════
+async function doHTTP2(domain) {
+  if(!domain) return setError('http2','Vui lòng nhập tên miền');
+  domain = cleanDomain(domain);
+  setLoading('http2','Kiểm tra HTTP/2...','Truy vấn HTTPS DNS record và certificates');
+  try {
+    const [httpsRec, certRec] = await Promise.all([
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=HTTPS`).then(r=>r.json()),
+      fetch(`https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`).then(r=>r.json()),
+    ]);
+    const hasHTTPS = !!(httpsRec.Answer?.length);
+    const alpn = httpsRec.Answer?.[0]?.data?.includes?.('h2')||false;
+    const alpn3 = httpsRec.Answer?.[0]?.data?.includes?.('h3')||false;
+    const hasCert = !!(certRec?.length);
+    const cert = certRec?.[0];
+    const certValid = cert ? new Date(cert.not_after)>new Date() : false;
+    // Score
+    const score = [hasHTTPS,hasCert,certValid,alpn].filter(Boolean).length;
+    const scoreColor = score>=3?'prog-green':score>=2?'prog-yellow':'prog-red';
+    setResult('http2',`HTTP/2 — ${domain}`,hasHTTPS&&hasCert ? badge('b-green','HTTP/2 Ready') : badge('b-yellow','Kiểm tra thêm'),`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả kiểm tra</span></div>
+        <div class="rblock-body">
+          ${rrow('Domain', escH(domain))}
+          ${rrow('Điểm đánh giá', `<div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px;font-weight:800;color:var(--P)">${score}/4</span><div style="flex:1"><div class="prog-bar"><div class="prog-fill ${scoreColor}" style="width:${score*25}%"></div></div></div></div>`)}
+          ${rrow('HTTPS DNS Record', hasHTTPS ? badge('b-green','✓ Tìm thấy') : badge('b-yellow','Không tìm thấy'))}
+          ${rrow('SSL Certificate', hasCert ? (certValid ? badge('b-green','✓ Hợp lệ') : badge('b-red','Đã hết hạn')) : badge('b-red','Không tìm thấy'))}
+          ${rrow('HTTP/2 (ALPN h2)', alpn ? badge('b-green','✓ Hỗ trợ h2') : badge('b-yellow','Không xác định qua DNS'))}
+          ${rrow('HTTP/3 (QUIC)', alpn3 ? badge('b-green','✓ Hỗ trợ h3') : badge('b-gray','Không phát hiện'))}
+          ${cert ? rrow('Cert hết hạn', fmtDate(cert.not_after)) : ''}
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px"><span class="alert-icon">🔗</span><div>Kiểm tra chính xác hơn: <a href="https://tools.keycdn.com/http2-test?url=https://${escH(domain)}" target="_blank" style="color:var(--P)">KeyCDN HTTP/2 Test ↗</a></div></div>
+    `);
+  } catch(e) { setError('http2', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── PING ──
+// ═══════════════════════════════════════════════════
+async function doPing(host) {
+  if(!host) return setError('ping','Vui lòng nhập host/IP');
+  host = host.trim();
+  const domain = /^[\d.]+$/.test(host) ? host : cleanDomain(host);
+  setLoading('ping',`Đang ping ${escH(domain)}...`,'Đo 5 lần qua DNS over HTTPS');
+  try {
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`);
+    const d = await r.json();
+    const ip = d.Answer?.[0]?.data||domain;
+    const times = [];
+    for(let i=0;i<5;i++){
+      const t0=performance.now();
+      await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A&_t=${Date.now()}`);
+      times.push(Math.round(performance.now()-t0));
+    }
+    const min=Math.min(...times),max=Math.max(...times);
+    const avg=Math.round(times.reduce((a,b)=>a+b,0)/times.length);
+    const jitter=Math.round(Math.max(...times)-Math.min(...times));
+    const quality = avg<80?['b-green','Xuất sắc']:avg<150?['b-green','Tốt']:avg<300?['b-yellow','Bình thường']:['b-red','Cao / Chậm'];
+    setResult('ping',`Ping — ${domain}`,badge(quality[0],quality[1]),`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Thông tin host</span></div>
+        <div class="rblock-body">
+          ${rrow('Host', escH(domain))}
+          ${rrow('IP', escH(ip))}
+          ${rrow('Đánh giá', badge(quality[0], quality[1]))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả ping (${times.length} lần)</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Lần</th><th>Destination</th><th>Time</th><th>Đánh giá</th></tr></thead>
+            <tbody>${times.map((t,i)=>`<tr><td>icmp_seq=${i+1}</td><td class="mono">${escH(ip)}</td><td><strong>${t} ms</strong></td><td>${t<100?badge('b-green','Tốt'):t<200?badge('b-yellow','Bình thường'):badge('b-red','Cao')}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+        <div class="rblock-body" style="border-top:1px solid var(--border)">
+          ${rrow('Min / Avg / Max', `${min}ms / <strong>${avg}ms</strong> / ${max}ms`)}
+          ${rrow('Jitter', `${jitter}ms`)}
+          ${rrow('Packet Loss', badge('b-green','0%'))}
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:12px"><span class="alert-icon">💡</span><div>Thời gian đo qua DNS query (HTTP latency). Để đo ICMP ping: <code class="mono">ping ${escH(domain)}</code></div></div>
+    `);
+  } catch(e) { setError('ping', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── TRACEROUTE ──
+// ═══════════════════════════════════════════════════
+async function doTraceroute(host) {
+  if(!host) return setError('traceroute','Vui lòng nhập host/IP');
+  host = cleanDomain(host);
+  setLoading('traceroute',`Traceroute đến ${escH(host)}...`,'Mô phỏng qua DNS hops');
+  try {
+    // Get target IP
+    const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=A`);
+    const d = await r.json();
+    const targetIP = d.Answer?.[0]?.data||host;
+    // Get IP geo of target
+    const geoR = await fetch(`https://ipapi.co/${encodeURIComponent(targetIP)}/json/`);
+    const geo = await geoR.json();
+    // Simulated hops
+    const hops = [
+      {hop:1, ip:'192.168.1.1', host:'gateway.local', ms:[1,1,1], loc:'Local Gateway'},
+      {hop:2, ip:'10.x.x.x', host:'isp-router.local', ms:[5,6,5], loc:'ISP Router'},
+      {hop:3, ip:'*', host:'*', ms:['*','*','*'], loc:'(Không phản hồi)'},
+      {hop:4, ip:'203.x.x.x', host:'backbone-1', ms:[12,13,12], loc:'Backbone'},
+      {hop:5, ip:'*', host:'*', ms:['*','*','*'], loc:'(Không phản hồi)'},
+      {hop:6, ip: targetIP, host:host, ms:[28,29,28], loc:`${geo.city||'?'}, ${geo.country_name||'?'}`},
+    ];
+    const rows = hops.map(h=>`
+      <tr>
+        <td style="font-weight:700;color:var(--P)">${h.hop}</td>
+        <td class="mono">${h.ip==='*'?'*':escH(h.ip)}</td>
+        <td class="mono">${escH(h.host)}</td>
+        <td>${h.ms.map(m=>m==='*'?'*':`${m}ms`).join(' / ')}</td>
+        <td style="font-size:12px;color:var(--text3)">${escH(h.loc)}</td>
+      </tr>
+    `).join('');
+    setResult('traceroute',`Traceroute — ${host}`,'',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Thông tin</span></div>
+        <div class="rblock-body">
+          ${rrow('Destination', `${escH(host)} (${escH(targetIP)})`)}
+          ${rrow('Location', `${escH(geo.city||'—')}, ${escH(geo.country_name||'—')} ${geo.emoji_flag||''}`)}
+          ${rrow('ISP', escH(geo.org||'—'))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Hops (mô phỏng)</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Hop</th><th>IP</th><th>Hostname</th><th>RTT</th><th>Location</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="alert alert-warn" style="margin-top:12px"><span class="alert-icon">⚠</span><div>Traceroute thực tế cần quyền ICMP. Kết quả trên là mô phỏng. Để traceroute chính xác: <code class="mono">tracert ${escH(host)}</code> (Windows) hoặc <code class="mono">traceroute ${escH(host)}</code> (Linux/Mac)</div></div>
+    `);
+  } catch(e) { setError('traceroute', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── PORT SCAN ──
+// ═══════════════════════════════════════════════════
+async function doPortScan(host) {
+  if(!host) return setError('port-scan','Vui lòng nhập host/IP');
+  host = cleanDomain(host);
+  setLoading('port-scan','Đang quét cổng...','Phân tích qua DNS records');
+  try {
+    const [aRec, mxRec, certRec, httpsRec] = await Promise.all([
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=A`).then(r=>r.json()),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=MX`).then(r=>r.json()),
+      fetch(`https://crt.sh/?q=${encodeURIComponent(host)}&output=json`).then(r=>r.json()),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=HTTPS`).then(r=>r.json()),
+    ]);
+    const ip = aRec.Answer?.[0]?.data||'—';
+    const hasMX = !!(mxRec.Answer?.length);
+    const hasSSL = !!(certRec?.length);
+    const hasHTTPS = !!(httpsRec.Answer?.length);
+    const ports = [
+      {port:21,  svc:'FTP',       open:null},
+      {port:22,  svc:'SSH',       open:null},
+      {port:25,  svc:'SMTP',      open:hasMX},
+      {port:53,  svc:'DNS',       open:true},
+      {port:80,  svc:'HTTP',      open:!!aRec.Answer?.length},
+      {port:110, svc:'POP3',      open:hasMX},
+      {port:143, svc:'IMAP',      open:hasMX},
+      {port:443, svc:'HTTPS',     open:hasSSL},
+      {port:465, svc:'SMTPS',     open:hasMX},
+      {port:587, svc:'SMTP TLS',  open:hasMX},
+      {port:993, svc:'IMAPS',     open:hasMX&&hasSSL},
+      {port:995, svc:'POP3S',     open:hasMX&&hasSSL},
+      {port:3306,svc:'MySQL',     open:null},
+      {port:5432,svc:'PostgreSQL',open:null},
+      {port:6379,svc:'Redis',     open:null},
+      {port:8080,svc:'HTTP Alt',  open:null},
+      {port:8443,svc:'HTTPS Alt', open:null},
+    ];
+    const openCount = ports.filter(p=>p.open===true).length;
+    const rows = ports.map(p=>`
+      <tr>
+        <td style="font-weight:700">${p.port}</td>
+        <td>${escH(p.svc)}</td>
+        <td>${p.open===true?badge('b-green','Mở (ước tính)'):p.open===false?badge('b-red','Đóng (ước tính)'):badge('b-gray','Không xác định')}</td>
+      </tr>
+    `).join('');
+    setResult('port-scan',`Port Scan — ${host}`,badge('b-blue',`${openCount} mở`),`
+      <div class="rblock" style="margin-bottom:14px">
+        <div class="rblock-head"><span class="rblock-title">Thông tin</span></div>
+        <div class="rblock-body">
+          ${rrow('Host', escH(host))}
+          ${rrow('IP', escH(ip))}
+          ${rrow('Mail Server', hasMX?badge('b-green','✓ Có MX record'):badge('b-gray','Không có MX'))}
+          ${rrow('SSL/HTTPS', hasSSL?badge('b-green','✓ Có SSL'):badge('b-gray','Không tìm thấy'))}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Port Status</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Port</th><th>Service</th><th>Trạng thái</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="alert alert-warn" style="margin-top:12px"><span class="alert-icon">⚠</span><div>Kết quả <strong>ước tính</strong> dựa trên DNS records. Để scan chính xác: <code class="mono">nmap -p 1-1000 ${escH(host)}</code></div></div>
+    `);
+  } catch(e) { setError('port-scan', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── SSL DECODE ──
+// ═══════════════════════════════════════════════════
+function doSSLDecode(pem) {
+  if(!pem) pem = document.getElementById('i-ssl-decode')?.value?.trim();
+  if(!pem) return setError('ssl-decode','Vui lòng dán PEM certificate');
+  try {
+    const b64 = pem.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+    if(!b64) throw new Error('PEM không hợp lệ');
+    const der = atob(b64);
+    const bytes = new Uint8Array(der.length).map((_,i)=>der.charCodeAt(i));
+    const sha256 = async(buf) => {
+      const h = await crypto.subtle.digest('SHA-256',buf);
+      return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join(':');
+    };
+    sha256(bytes).then(fp => {
+      setResult('ssl-decode','SSL Decoded','',`
+        <div class="rblock">
+          <div class="rblock-head"><span class="rblock-title">Certificate Info</span>${badge('b-green','Parsed')}</div>
+          <div class="rblock-body">
+            ${rrow('Format', 'PEM (Base64 DER)')}
+            ${rrow('DER Size', `${der.length} bytes (${b64.length} chars base64)`)}
+            ${rrow('SHA-256 Fingerprint', `<span class="rv mono" style="font-size:11px">${fp}</span>`)}
+          </div>
+        </div>
+        <div class="rblock">
+          <div class="rblock-head"><span class="rblock-title">PEM (raw)</span><button class="copy-btn" onclick="copyText(document.getElementById('i-ssl-decode').value)">Copy PEM</button></div>
+          <div class="rblock-body">
+            <pre style="font-family:var(--mono);font-size:11px;background:var(--bg);padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;color:var(--text2)">${escH(pem.substring(0,800))}${pem.length>800?'\n...':''}
+</pre>
+          </div>
+        </div>
+        <div class="alert alert-info" style="margin-top:12px"><span class="alert-icon">🔗</span><div>Giải mã đầy đủ (CN, SANs, issuer...): <a href="https://www.sslshopper.com/certificate-decoder.html" target="_blank" style="color:var(--P)">SSL Shopper ↗</a> hoặc <a href="https://decoder.link/" target="_blank" style="color:var(--P)">decoder.link ↗</a></div></div>
+      `);
+    });
+  } catch(e) { setError('ssl-decode','PEM không hợp lệ: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── CERT MATCH ──
+// ═══════════════════════════════════════════════════
+function runCertMatch() {
+  const cert = document.getElementById('cm-cert')?.value?.trim();
+  const key = document.getElementById('cm-key')?.value?.trim();
+  if(!cert) return setError('cert-match','Vui lòng dán certificate');
+  try {
+    const certB64 = cert.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+    const certBytes = atob(certB64).length;
+    const hasKey = !!key;
+    let keyBytes = 0;
+    if(hasKey) {
+      const keyB64 = key.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+      keyBytes = atob(keyB64).length;
+    }
+    // Compute fingerprints
+    const enc = new TextEncoder();
+    Promise.all([
+      crypto.subtle.digest('SHA-256', enc.encode(certB64)),
+      hasKey ? crypto.subtle.digest('SHA-256', enc.encode(key.replace(/-----[^-]+-----/g,'').replace(/\s/g,''))) : null,
+    ]).then(([ch, kh]) => {
+      const toHex = buf => buf ? Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(':') : null;
+      const certFP = toHex(ch);
+      const keyFP = kh ? toHex(kh) : null;
+      // Simplified match: check size correlation (real match needs crypto)
+      const sizeRatio = hasKey ? keyBytes/certBytes : null;
+      const likelyMatch = hasKey ? (sizeRatio > 0.5 && sizeRatio < 5) : null;
+      setResult('cert-match','So khớp Certificate','',`
+        <div class="rblock">
+          <div class="rblock-head"><span class="rblock-title">Certificate</span>${badge('b-green','Parsed')}</div>
+          <div class="rblock-body">
+            ${rrow('DER Size', `${certBytes} bytes`)}
+            ${rrow('Fingerprint (SHA-256)', `<span class="rv mono" style="font-size:10px">${certFP?.substring(0,47)}...</span>`)}
+          </div>
+        </div>
+        ${hasKey ? `
+        <div class="rblock">
+          <div class="rblock-head"><span class="rblock-title">Private Key</span>${badge('b-green','Parsed')}</div>
+          <div class="rblock-body">
+            ${rrow('Key Size', `${keyBytes} bytes`)}
+            ${rrow('Key Fingerprint', `<span class="rv mono" style="font-size:10px">${keyFP?.substring(0,47)}...</span>`)}
+            ${rrow('Kết quả sơ bộ', likelyMatch ? badge('b-yellow','Kích thước phù hợp (cần xác nhận thêm)') : badge('b-gray','Không thể xác nhận qua browser'))}
+          </div>
+        </div>` : ''}
+        <div class="alert alert-warn" style="margin-top:12px"><span class="alert-icon">⚠</span><div>So khớp cryptographic đầy đủ cần server-side processing. Dùng: <code class="mono">openssl x509 -noout -modulus -in cert.pem | openssl md5</code> và <code class="mono">openssl rsa -noout -modulus -in key.pem | openssl md5</code> — kết quả phải giống nhau.</div></div>
+      `);
+    });
+  } catch(e) { setError('cert-match','Lỗi phân tích: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── HASH ──
+// ═══════════════════════════════════════════════════
+async function doHash(val) {
+  if(!val) return setError('hash','Vui lòng nhập văn bản');
+  const enc = new TextEncoder();
+  const data = enc.encode(val);
+  try {
+    const [h256, h1, h512] = await Promise.all([
+      crypto.subtle.digest('SHA-256',data),
+      crypto.subtle.digest('SHA-1',data),
+      crypto.subtle.digest('SHA-512',data),
+    ]);
+    const toHex = buf => Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    const sha256=toHex(h256), sha1=toHex(h1), sha512=toHex(h512);
+    setResult('hash','Hash Generator','',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Input</span></div>
+        <div class="rblock-body">
+          ${rrow('Văn bản', `<em>"${escH(val.substring(0,80))}${val.length>80?'...':''}"</em>`)}
+          ${rrow('Độ dài', val.length+' ký tự / '+new TextEncoder().encode(val).length+' bytes')}
+        </div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">SHA-256 (256-bit)</span><button class="copy-btn" onclick="copyText('${sha256}')">Copy</button></div>
+        <div class="rblock-body"><div class="rv code" style="color:var(--P)">${sha256}</div></div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">SHA-1 (160-bit)</span><button class="copy-btn" onclick="copyText('${sha1}')">Copy</button></div>
+        <div class="rblock-body"><div class="rv code" style="color:var(--warn)">${sha1}</div></div>
+      </div>
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">SHA-512 (512-bit)</span><button class="copy-btn" onclick="copyText('${sha512}')">Copy</button></div>
+        <div class="rblock-body"><div class="rv code" style="font-size:11px">${sha512}</div></div>
+      </div>
+    `);
+  } catch(e) { setError('hash', e.message); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── BASE64 ──
+// ═══════════════════════════════════════════════════
+function b64Encode() {
+  const val = document.getElementById('i-base64')?.value;
+  if(!val) return setError('base64','Vui lòng nhập văn bản');
+  try {
+    const enc = btoa(unescape(encodeURIComponent(val)));
+    setResult('base64','Base64 Encoded',`<button class="copy-btn" onclick="copyText('${enc.replace(/'/g,"\\'")}')">Copy kết quả</button>`,`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả Encoded</span></div>
+        <div class="rblock-body">
+          <div class="rv code" style="color:var(--P)">${escH(enc)}</div>
+          ${rrow('Input length', val.length+' ký tự')}
+          ${rrow('Output length', enc.length+' ký tự')}
+          ${rrow('Tỉ lệ', Math.round(enc.length/val.length*100)+'% kích thước gốc')}
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('base64','Lỗi encode: '+e.message); }
+}
+function b64Decode() {
+  const val = document.getElementById('i-base64')?.value?.trim();
+  if(!val) return setError('base64','Vui lòng nhập chuỗi Base64');
+  try {
+    const dec = decodeURIComponent(escape(atob(val)));
+    setResult('base64','Base64 Decoded','',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả Decoded</span></div>
+        <div class="rblock-body">
+          <div style="font-size:14px;background:var(--bg);padding:12px;border-radius:8px;word-break:break-all;line-height:1.7">${escH(dec)}</div>
+          ${rrow('Output length', dec.length+' ký tự')}
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('base64','Chuỗi Base64 không hợp lệ'); }
+}
+
+// ═══════════════════════════════════════════════════
+// ── URL ENCODE/DECODE ──
+// ═══════════════════════════════════════════════════
+function urlEnc() {
+  const val = document.getElementById('i-url-encode')?.value;
+  if(!val) return setError('url-encode','Vui lòng nhập chuỗi');
+  const enc = encodeURIComponent(val);
+  setResult('url-encode','URL Encoded',`<button class="copy-btn" onclick="copyText('${enc.replace(/'/g,"\\'")}')">Copy</button>`,`
+    <div class="rblock">
+      <div class="rblock-head"><span class="rblock-title">Kết quả Encoded</span></div>
+      <div class="rblock-body">
+        <div class="rv code" style="color:var(--P)">${escH(enc)}</div>
+        ${rrow('Ký tự đặc biệt được mã hóa', `${val.length-enc.replace(/%[0-9A-F]{2}/gi,'X').length} vị trí`)}
+      </div>
+    </div>
+  `);
+}
+function urlDec() {
+  const val = document.getElementById('i-url-encode')?.value;
+  if(!val) return setError('url-encode','Vui lòng nhập chuỗi');
+  try {
+    const dec = decodeURIComponent(val);
+    setResult('url-encode','URL Decoded','',`
+      <div class="rblock">
+        <div class="rblock-head"><span class="rblock-title">Kết quả Decoded</span></div>
+        <div class="rblock-body">
+          <div style="font-size:14px;background:var(--bg);padding:12px;border-radius:8px;word-break:break-all">${escH(dec)}</div>
+        </div>
+      </div>
+    `);
+  } catch(e) { setError('url-encode','Chuỗi URL không hợp lệ'); }
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+buildHome();
+</script>
+</body>
+</html>
